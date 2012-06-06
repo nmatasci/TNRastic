@@ -27,9 +27,14 @@ ITIS.pm -- A TNRastic adaptor for the ITIS TNRS
 
 package ITIS;
 
+BEGIN {
+    push @INC, "./SOAPInterface";
+}
+
 use Carp;
 use LWP::UserAgent;
 use JSON;
+use MyInterfaces::ITISService::ITISServiceHttpSoap11Endpoint;
 
 =head2 new
 
@@ -65,18 +70,21 @@ sub lookup {
     # Make the API call.
     my $names = join(',', @names); 
 
-    my $lwp = $self->{'lwp'};
-    if (not defined $lwp) {
-        $lwp = $self->{'lwp'} = LWP::UserAgent->new(
-            'agent' => "TRNastic ITIS TNRS adaptor/0.1 "
-        );
+    my $itis = $self->{'itis'};
+    if (not defined $itis) {
+        $itis = $self->{'itis'} = MyInterfaces::ITISService::ITISServiceHttpSoap11Endpoint->new();
     }
 
-    my $url = "http://tnrs.iplantc.org/tnrsm-svc/matchNames";
-    my $response = $lwp->post($url, {
-        'retrieve' => 'best',
-        'names' => $names
+    my $response = $itis->getITISTermsFromScientificName({
+        srchKey => 'Mangifera indica'
     });
+
+    use Data::Dumper;
+
+    # This is a scientificName.
+    die $response->get_return()->get_itisTerms()->get_tsn();
+# ->{'scientificNames'}->{'combinedName'};
+
 
     # If no success, report an error.
     unless($response->is_success) {
