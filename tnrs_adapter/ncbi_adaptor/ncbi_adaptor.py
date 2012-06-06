@@ -27,7 +27,7 @@ def search_NCBI_for_ids(search_term):
     # Find IdList and make sure it is not empty
     idListElement = dom.findall("IdList")    
     if len(idListElement) != 1:
-        raise Exception(BAD_XML_ERROR %("Number of IdList elements is not right",search_term))
+        raise Exception(BAD_XML_ERROR %("Number of IdList elements is not right",url))
     
     # Find the retrieved IDs
     idList = idListElement[0].findall("Id")
@@ -99,7 +99,7 @@ if __name__ == '__main__':
                     "acceptedName":res[t][1]})
     except Exception as e:
         jres["status"] = 500
-        jres["errorMessage"] = e
+        jres["errorMessage"] = str(e)
         jres["names"] = []
         
     print json.dumps(jres)
