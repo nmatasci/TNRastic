@@ -110,7 +110,16 @@ sub lookup {
         push @returned_names, $name;
     }
 
-    return {'names' => \@returned_names};
+    my $error_message = $response->message;
+    if($error_message eq 'OK') {
+        $error_message = "";
+    }
+
+    return {
+        'status' => $response->code,
+        'errorMessage' => $error_message,
+        'names' => \@returned_names
+    };
 }
 
 1;
