@@ -22,6 +22,18 @@
             "annotations": {},
             "rank": 3,
             "call": "pythpon2.6 ncbi_adapter/ncbi_adaptor.py"
+        },
+        {
+            "sourceId": "iPlant TNRS",
+            "name": "iPlant Collaborative TNRS v3.0",
+            "description": "The iPlant Collaborative TNRS provides parsing and fuzzy matching for plant taxa.",
+            "uri": "http://tnrs.iplantcollaborative.org/",
+            "publication": "The Taxonomic Name Resolution Service; http://tnrs.iplantcollaborative.org; version 3.0.",
+            "annotations": {
+                "Authority": "Author attributed to the accepted name (where applicable)."
+            },
+            "rank": 2,
+            "call": "perl -Iiplant iplant/iplant.pl"
         }
     ]
 }
