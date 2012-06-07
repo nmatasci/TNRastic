@@ -18,7 +18,7 @@ def spellcheck_by_ncbi(input_term):
 
     # Build URL and send make the request
     url = "%s?%s" %(BASE_SPELL_QUARY,urllib.urlencode(parameters))
-    f = urllib.urlopen(url)
+    f = urllib.urlopen(BASE_SPELL_QUARY,urllib.urlencode(parameters))
     data = f.read()
     f.close()
 

@@ -4,21 +4,19 @@ import sys
 import json
 from xml.etree.ElementTree import fromstring
 
-TAXON_URL_BASE="http://www.ncbi.nlm.nih.gov/taxonomy"
 
-BASE_SEARCH_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-BASE_SUMMARY_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+BASE_API_URL = "http://localhost/tnrastic"
 
 BAD_XML_ERROR = "NCBI XML could not be parsed: %s\n (quary=%s)"
 MP_ID_ERROR = "We expect one ID back from NCBI, but we got more than one ID. Oops!"
 
-def search_NCBI_for_ids(search_term):
+def test_tnrs_api(search_terms):
     # Search the taxanomy DB of NCBI for a given term
     parameters={"db":'taxonomy',"term":search_term}
 
     # Build URL and send make the request
     url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
-    f = urllib.urlopen(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
+    f = urllib.urlopen(url)
     data = f.read()
     f.close()
 
@@ -50,7 +48,7 @@ def get_name_for_ids(ids):
     parameters={"db":'taxonomy',"id":",".join(ids)}
 
     # Build URL and send make the request
-    f = urllib.urlopen(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))
+    f = urllib.urlopen("%s?%s" %(BASE_SUMMARY_QUARY,urllib.urlencode(parameters)))
     data = f.read()
     f.close()
 
@@ -60,13 +58,13 @@ def get_name_for_ids(ids):
     # Find IdList and make sure it is not empty
     sumElements = dom.findall("DocSum")
     if len(sumElements) != len(ids):
-        raise Exceptoin(BAD_XML_ERROR,%s("One and only one doc sum is expected per each input ID","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
+        raise Exceptoin(BAD_XML_ERROR)
     
     for docSum in sumElements:
         id = docSum.find('Id').text
         name = [x.text for x in docSum.findall("Item") if x.get('Name') == "ScientificName"]
         if len (name) != 1:
-            raise Exception(BAD_XML_ERROR,%s("One and only one ID is expected per each doc sum","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
+            raise Exception(BAD_XML_ERROR)
         idToName[id] = name[0]
 
     return idToName
@@ -105,3 +103,4 @@ if __name__ == '__main__':
         jres["names"] = []
         
     print json.dumps(jres)
+    
