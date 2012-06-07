@@ -11,24 +11,47 @@ BASE_SUMMARY_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi
 
 BAD_XML_ERROR = "NCBI XML could not be parsed: %s\n (quary=%s)"
 MP_ID_ERROR = "We expect one ID back from NCBI, but we got more than one ID. Oops!"
+HTML_ERROR = "HTML error in accessing NCBI"
 
 def search_NCBI_for_ids(search_term):
+
     # Search the taxanomy DB of NCBI for a given term
     parameters={"db":'taxonomy',"term":search_term}
 
-    # Build URL and send make the request
-    url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
-    f = urllib.urlopen(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
-    data = f.read()
-    f.close()
+    url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))# URL just for outputting errors
+    # Search taxonomy for a given term. In case of an error, wait a second and try again. 
+    # Do this for a maximum of 20 times
+    succ = False
+    tries=0
+    while not succ and tries < 20:
+        if tries > 0:
+            time.sleep(1) # seems like NCBI has trouble with too many calls in short time periods
+            print >>sys.stderr, "Error for %s, trying one more time: %d" %(search_term,tries)
+        # make the call
+        f = urllib.urlopen(BASE_SEARCH_QUARY,urllib.urlencode(parameters))    
+        tries += 1
+        # If HTTP error, try again
+        succ = f.getcode() == 200
+        if not succ:
+            continue
+        data = f.read()
+        f.close()
+        
+        # Parse the resulting XML file (no automatic validation for now. We do have DTDs that we can later use to do validation) 
+        dom = fromstring(data)
+        
+        # If error in the XML file, try again
+        succ = dom.find("ERROR") is None or dom.find("ERROR").text is None
 
-    # Parse the resulting XML file (no automatic validation for now. We do have DTDs that we can later use to do validation) 
-    dom = fromstring(data)
+    if f.getcode() != 200:
+        raise Exception (HTML_ERROR, f.getcode())
+    if not succ:
+        raise Exceptoin ("Unable to resolve %s after 20 tries" %search_term)
 
     # Find IdList and make sure it is not empty
     idListElement = dom.findall("IdList")    
     if len(idListElement) != 1:
-        raise Exception(BAD_XML_ERROR %("Number of IdList elements is not right",url))
+        raise Exception(BAD_XML_ERROR %("We expec only on IdList item",url),data)
     
     # Find the retrieved IDs
     idList = idListElement[0].findall("Id")
@@ -78,10 +101,11 @@ if __name__ == '__main__':
     try:
         for t in sys.stdin:
             term = t[0:-1]
-            id = search_NCBI_for_ids(term)
-            time.sleep(0.1)
+            id = search_NCBI_for_ids(term)            
+            time.sleep(0.01)# a bit of sleep to help NCBI
             if id is not None:
                 id2term[id] = term
+                #print >>sys.stderr, "%s was mapped to %s " %(term,id)
             res[term] = (id,None)
         id2names = get_name_for_ids(id2term.keys())
         for id in id2names.keys():
