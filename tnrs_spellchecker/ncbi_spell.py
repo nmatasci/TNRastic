@@ -29,14 +29,14 @@ def spellcheck_by_ncbi(input_term):
     if errElm is None:
         raise Exception(BAD_XML_ERROR %("No ERROR Element found in XML",url))
     if errElm.text is not None:
-	raise Exception(SERVICE_ERROR %errElm.text)
+        raise Exception(SERVICE_ERROR %errElm.text)
 
     # Find the retrieved IDs
     spellList = dom.findall("SpelledQuery")
     if len(spellList) == 1:
         spell = spellList[0]
         res = "".join([term.text for term in spell if term.text is not None]) 
-        return res
+        return res if res != "" else None
     else:
         return None 
 
@@ -47,8 +47,7 @@ if __name__ == '__main__':
         for t in sys.stdin:
             term = t[0:-1]
             matchedName = spellcheck_by_ncbi(term)
-            if matchedName is not None:
-                res[term] = matchedName
+            res[term] = matchedName
         
         jres["status"] = "200"
         jres["errorMessage"] = ""
