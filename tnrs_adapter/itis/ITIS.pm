@@ -82,6 +82,13 @@ sub lookup {
             srchKey => $name
         });
 
+        if(not $response) {
+            return {
+                'status' => 500,
+                'errorMessage' => $response->get_faultstring()
+            };
+        }
+
         # All terms.
         my @terms = @{$response->get_return()->get_itisTerms()};
 
@@ -121,6 +128,14 @@ sub lookup {
         $response = $itis->getAcceptedNamesFromTSN({
             tsn => $tsn
         }); 
+
+        if(not $response) {
+            return {
+                'status' => 500,
+                'errorMessage' => $response->get_faultstring()
+            };
+        }
+
         my $warning;
         my $accepted_name;
         my $accepted_tsn;

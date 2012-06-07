@@ -23,29 +23,28 @@ is($result,
 $result = $itis->lookup(
     'Iris confusa',
     'Iris cristata',
-    'Iris gracilipes A.Gray',
-    'Iris japonica Thunb.',
+    'Iris gracilipes',
+    'Iris japonica',
     'Iris lacustris' ,
     'Iris milesii',
-    'Iris milesii Foster',
-    'Iris tectorum Maxim.',
-    'Iris tenuis S.Wats.',
-    'Iris wattii Baker ex Hook.f.',
-    'Iris xiphium var. lusitanica',
-    'Iris boissieri Henriq',
-    'Iris filifolia Boiss.',
-    'Iris juncea Poir.',
+    'Iris tectorum',
+    'Iris tenuis',
+    'Iris wattii',
+    'Iris xiphium',
+    'Iris boissieri',
+    'Iris filifolia',
+    'Iris juncea',
     'Iris latifolia',
-    'Iris serotina Willk. in Willk. & Lange',
-    'Iris tingitana Boiss. & Reut.',
-    'Iris xiphium syn. Iris x hollandica',
-    'Iris collettii Hook.',
-    'Iris decora Wall.'
+    'Iris serotina',
+    'Iris tingitana',
+    'Iris xiphium',
+    'Iris collettii',
+    'Iris decora'
 );
 
-is(scalar(@{$result->{'names'}}), 20, "Checking number of returned names");
+is(scalar(@{$result->{'names'}}), 19, "Checking number of returned names");
 
 my $result_str = encode_json($result);
 is($result_str, 
-    qq<{"names":[{"submittedName":"Iris confusa","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris cristata","acceptedName":"Iris cristata","score":0.5,"matchedName":"Iris cristata","annotations":{"TSN":"43204","originalTSN":"43204"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43204"},{"submittedName":"Iris gracilipes A.Gray","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris japonica Thunb.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris lacustris","acceptedName":"Iris lacustris","score":0.5,"matchedName":"Iris lacustris","annotations":{"TSN":"43218","originalTSN":"43218"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43218"},{"submittedName":"Iris milesii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris milesii Foster","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tectorum Maxim.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tenuis S.Wats.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris wattii Baker ex Hook.f.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris xiphium var. lusitanica","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris boissieri Henriq","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris filifolia Boiss.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris juncea Poir.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris latifolia","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris serotina Willk. in Willk. & Lange","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tingitana Boiss. & Reut.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris xiphium syn. Iris x hollandica","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris collettii Hook.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris decora Wall.","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""}],"status":200,"errorMessage":""}>,
-    "Checking 20 Iris spp");
+    qq<{"names":[{"submittedName":"Iris confusa","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris cristata","acceptedName":"Iris cristata","score":0.5,"matchedName":"Iris cristata","annotations":{"TSN":"43204","originalTSN":"43204"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43204"},{"submittedName":"Iris gracilipes","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris japonica","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris lacustris","acceptedName":"Iris lacustris","score":0.5,"matchedName":"Iris lacustris","annotations":{"TSN":"43218","originalTSN":"43218"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43218"},{"submittedName":"Iris milesii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tectorum","acceptedName":"Iris tectorum","score":0.5,"matchedName":"Iris tectorum","annotations":{"TSN":"507025","originalTSN":"507025"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=507025"},{"submittedName":"Iris tenuis","acceptedName":"Iris tenuis","score":0.5,"matchedName":"Iris tenuis","annotations":{"TSN":"43229","originalTSN":"43229"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43229"},{"submittedName":"Iris wattii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris xiphium","acceptedName":"Iris xiphium","score":0.5,"matchedName":"Iris xiphium","annotations":{"TSN":"43202","originalTSN":"43202"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43202"},{"submittedName":"Iris boissieri","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris filifolia","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris juncea","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris latifolia","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris serotina","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tingitana","acceptedName":"Iris tingitana","score":0.5,"matchedName":"Iris tingitana","annotations":{"TSN":"503205","originalTSN":"503205"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=503205"},{"submittedName":"Iris xiphium","acceptedName":"Iris xiphium","score":0.5,"matchedName":"Iris xiphium","annotations":{"TSN":"43202","originalTSN":"43202"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43202"},{"submittedName":"Iris collettii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris decora","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""}],"status":200,"errorMessage":""}>,
+    "Checking 19 Iris spp");
