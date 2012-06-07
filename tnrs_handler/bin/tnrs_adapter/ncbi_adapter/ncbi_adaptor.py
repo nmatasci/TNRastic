@@ -100,7 +100,7 @@ if __name__ == '__main__':
     id2term = {}
     try:
         for t in sys.stdin:
-            term = t[0:-1]
+            term = t.replace("\n","")
             id = search_NCBI_for_ids(term)            
             time.sleep(0.01)# a bit of sleep to help NCBI
             if id is not None:
