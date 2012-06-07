@@ -4,6 +4,23 @@ use JSON;
 
 our @VERSION=1.0;
 
+test();
+sub test{
+open(my$TD,"<../../testdata/test.json") or die "Cannot open testdata: $!\n";
+my@test=(<$TD>);
+close $TD;
+my$res = decode_json( join '',@test );
+my@results;
+		$res->{sourceId}=0;
+		$res->{sourceRank}=0;
+		push @results, $res;
+		$res->{sourceId}=1;
+		$res->{sourceRank}=1;
+		push @results, $res;
+		$res=merge(\@results);
+		write_output($res,"../../testdata/newtest.out",'newtest',localtime,'');
+}
+
 
 sub process{
 	my$names_file=shift;
@@ -58,15 +75,11 @@ sub merge {
 			next;	
 		}
 		my$sourceid=$res->{sourceId};
-		my$rank=$res->{rank};
+		my$rank=$res->{sourceRank};
 		my@names=@{$res->{names}}; 
 		foreach(@names){ #for all the submitted names
 			my%input=%{$_};
 			
-#			#initializes the array if it doesn't exist yet
-#			if(!$matches{$input{submittedName}}) { 
-#				$matches{$input{submittedName}} =();			
-#			}
 
 			#builds the output object
 			my$output = {
@@ -75,11 +88,10 @@ sub merge {
 				acceptedName=>$input{acceptedName},
 				uri=>$input{uri},
 				score=>$input{score},
-				annotations=>$input{annotations}
+				annotations=>$input{annotations},
 			};
-			
 			@{$matches{$input{submittedName}}}[$rank]=$output;
-		} #end of submitted names	
+		} #end of matches
 		
 	} #end of source
 	return \%matches;
