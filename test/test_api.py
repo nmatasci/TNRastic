@@ -1,17 +1,16 @@
 import urllib
+import time
 import sys
 import json
 from xml.etree.ElementTree import fromstring
 
-TAXON_URL_BASE="http://www.ncbi.nlm.nih.gov/taxonomy"
 
-BASE_SEARCH_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-BASE_SUMMARY_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+BASE_API_URL = "http://localhost/tnrastic"
 
 BAD_XML_ERROR = "NCBI XML could not be parsed: %s\n (quary=%s)"
 MP_ID_ERROR = "We expect one ID back from NCBI, but we got more than one ID. Oops!"
 
-def search_NCBI_for_ids(search_term):
+def test_tnrs_api(search_terms):
     # Search the taxanomy DB of NCBI for a given term
     parameters={"db":'taxonomy',"term":search_term}
 
@@ -78,6 +77,7 @@ if __name__ == '__main__':
         for t in sys.stdin:
             term = t[0:-1]
             id = search_NCBI_for_ids(term)
+            time.sleep(0.1)
             if id is not None:
                 id2term[id] = term
             res[term] = (id,None)

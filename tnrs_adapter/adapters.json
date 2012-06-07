@@ -1,0 +1,27 @@
+{
+    "adapters": [
+        {
+            "sourceId": 0,
+            "name": "Example",
+            "description": "Foucused on unicorn taxonomy",
+            "uri": "http://example.org",
+            "publication": "doi:unitax/1234/4.1",
+            "annotations": {
+                "some": "metadata",
+                "useful": "information"
+            },
+            "rank": 0,
+            "call": "./unitaxa.pl"
+        },
+        {
+            "sourceId": 1,
+            "name": "NCBI",
+            "description": "NCBI Taxonomy",
+            "uri": "http://www.ncbi.nlm.nih.gov/taxonomy",
+            "publication": "Federhen S. The Taxonomy Project.2002 Oct 9 [Updated 2003 Aug 13]. In: McEntyre J., Ostell J., editors. The NCBI Handbook [Internet]. Bethesda (MD): National Center for Biotechnology Information (US);2002.",
+            "annotations": {},
+            "rank": 3,
+            "call": "pythpon2.6 ncbi_adapter/ncbi_adaptor.py"
+        }
+    ]
+}
