@@ -4,6 +4,26 @@ use JSON;
 
 our @VERSION=1.0;
 
+test();
+sub test{
+my$ad_ref=load_adapters();
+open(my$TD,"</home/nmatasci/TNRastic/testdata/test.json") or die "Cannot open testdata: $!\n";
+my@test=(<$TD>);
+close $TD;
+
+my$res = decode_json( join '',@test );
+my@results;
+		$res->{sourceId}=0;
+		$res->{sourceRank}=0;
+		push @results, $res;
+		my%res2=%{$res};
+		$res2{sourceId}=1;
+		$res2{sourceRank}=1;
+		push @results, \%res2;
+		$res=merge(\@results);
+		write_output($res,"/home/nmatasci/TNRastic/testdata/newtest.out",'newtest',localtime,'');
+}
+
 
 sub process{
 	my$names_file=shift;
@@ -51,6 +71,7 @@ sub query_sources{
 sub merge {
 	my$results=shift;
 	my%matches;
+	my%output;
 	foreach(@{$results}){ #for every source
 		my$res=$_;
 		if($res->{status} ne 200){ #there was a failure
@@ -58,15 +79,14 @@ sub merge {
 			next;	
 		}
 		my$sourceid=$res->{sourceId};
-		my$rank=$res->{rank};
+		my$rank=$res->{sourceRank};
 		my@names=@{$res->{names}}; 
 		foreach(@names){ #for all the submitted names
 			my%input=%{$_};
-			
-#			#initializes the array if it doesn't exist yet
-#			if(!$matches{$input{submittedName}}) { 
-#				$matches{$input{submittedName}} =();			
-#			}
+			if(!$input{matchedName} || $input{matchedName} eq 'null'){
+				next;	
+			}
+
 
 			#builds the output object
 			my$output = {
@@ -75,23 +95,26 @@ sub merge {
 				acceptedName=>$input{acceptedName},
 				uri=>$input{uri},
 				score=>$input{score},
-				annotations=>$input{annotations}
+				annotations=>$input{annotations},
+				
 			};
-			
 			@{$matches{$input{submittedName}}}[$rank]=$output;
-		} #end of submitted names	
-		
+
+		} #end of matches
+
 	} #end of source
 	return \%matches;
 }
 
 
 sub write_output{
-	my$output=shift;
+	my$results=shift;
 	my$filename=shift;
 	my$jobid=shift;
 	my$sub_date=shift;
 	my$sources=extract_meta(shift); #extract the source metadata from the adapters
+	
+	my$output;
 	
 	
 	my$meta={
@@ -100,6 +123,20 @@ sub write_output{
 		sub_date => $sub_date
 	};
 	$output->{metadata}=$meta;
+	my@names;
+	
+	for my$key (keys %{$results}){
+		my@matches=@{$results->{$key}};
+		my$entry ={
+			submittedName=> $key,
+            matchCount=> scalar(@matches),
+            matches => \@matches		
+		};
+		push @names, $entry;	
+	}
+	
+	$output->{names}=\@names;
+	
 	$output = encode_json($output);
 	open(my$OF,">$filename") or return "Cannot open output file $filename: $!\n";
 	print $OF $output;
