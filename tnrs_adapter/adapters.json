@@ -1,7 +1,7 @@
 {
     "adapters": [
         {
-            "sourceId": 0,
+            "sourceId": "UNICORN",
             "name": "Example",
             "description": "Foucused on unicorn taxonomy",
             "uri": "http://example.org",
@@ -14,7 +14,7 @@
             "call": "./unitaxa.pl"
         },
         {
-            "sourceId": 1,
+            "sourceId": "NCBI",
             "name": "NCBI",
             "description": "NCBI Taxonomy",
             "uri": "http://www.ncbi.nlm.nih.gov/taxonomy",
