@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 use JSON;
 
 require "ITIS.pm";
@@ -48,3 +48,13 @@ my $result_str = encode_json($result);
 is($result_str, 
     qq<{"names":[{"submittedName":"Iris confusa","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris cristata","acceptedName":"Iris cristata","score":0.5,"matchedName":"Iris cristata","annotations":{"TSN":"43204","originalTSN":"43204"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43204"},{"submittedName":"Iris gracilipes","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris japonica","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris lacustris","acceptedName":"Iris lacustris","score":0.5,"matchedName":"Iris lacustris","annotations":{"TSN":"43218","originalTSN":"43218"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43218"},{"submittedName":"Iris milesii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tectorum","acceptedName":"Iris tectorum","score":0.5,"matchedName":"Iris tectorum","annotations":{"TSN":"507025","originalTSN":"507025"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=507025"},{"submittedName":"Iris tenuis","acceptedName":"Iris tenuis","score":0.5,"matchedName":"Iris tenuis","annotations":{"TSN":"43229","originalTSN":"43229"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43229"},{"submittedName":"Iris wattii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris xiphium","acceptedName":"Iris xiphium","score":0.5,"matchedName":"Iris xiphium","annotations":{"TSN":"43202","originalTSN":"43202"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43202"},{"submittedName":"Iris boissieri","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris filifolia","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris juncea","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris latifolia","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris serotina","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris tingitana","acceptedName":"Iris tingitana","score":0.5,"matchedName":"Iris tingitana","annotations":{"TSN":"503205","originalTSN":"503205"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=503205"},{"submittedName":"Iris xiphium","acceptedName":"Iris xiphium","score":0.5,"matchedName":"Iris xiphium","annotations":{"TSN":"43202","originalTSN":"43202"},"uri":"http://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=43202"},{"submittedName":"Iris collettii","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""},{"submittedName":"Iris decora","acceptedName":"","score":0,"matchedName":"","annotations":{},"uri":""}],"status":200,"errorMessage":""}>,
     "Checking 19 Iris spp");
+
+# Check the executable.
+system("perl itis.pl < t/list_names.txt > /tmp/itis_test_output.txt") == 0
+    or die("Could not execute itis.pl: $?");
+
+use File::Compare;
+ok(
+    compare("/tmp/itis_test_output.txt", "t/itis_test_expected.json") == 0,
+    "Checking whether itis.pl can be used to output the correct file information."  
+);

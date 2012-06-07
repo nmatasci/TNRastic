@@ -5,12 +5,11 @@ use strict;
 
 use JSON;
 
-require 'iPlant.pm';
+require 'ITIS.pm';
 
 # We'll get the list of names on stdin.
 my @names = <STDIN>;
-
 chomp @names;
 
-my $iplant = iPlant->new();
-print encode_json $iplant->lookup(@names);
+my $itis = ITIS->new();
+print encode_json $itis->lookup(@names);
