@@ -1,0 +1,15 @@
+{
+    "speller": [
+        {
+            "sourceId": 1,
+            "name": "NCBI",
+            "description": "NCBI Spell Checker",
+            "uri": "http://www.ncbi.nlm.nih.gov/",
+            "publication": "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2578899/",
+            "annotations": {},
+            "rank": 1,
+            "call": "pythpon2.6 ncbi_speller.py"
+        }
+    ]
+
+}
