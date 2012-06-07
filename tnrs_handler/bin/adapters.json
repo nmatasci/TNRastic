@@ -1,0 +1,22 @@
+{
+	"adapters" : [
+	 { 
+	     "name" : "Example",
+	     "sourceID" : 0,
+	     "rank" : 0,
+	     "uri" : "http://example.org",
+	     "description" : "Foucused on unicorn taxonomy",
+	     "annotations": "useless: metadata",
+	     "call" : "./unitaxa.pl"
+	 },
+	 {
+	     "name" : "NCBI",
+	     "sourceID" : 0,
+	     "rank" : 0	     
+	 } 
+	
+
+	    
+	]
+
+}
