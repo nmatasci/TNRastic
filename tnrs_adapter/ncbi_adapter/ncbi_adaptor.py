@@ -60,13 +60,13 @@ def get_name_for_ids(ids):
     # Find IdList and make sure it is not empty
     sumElements = dom.findall("DocSum")
     if len(sumElements) != len(ids):
-        raise Exceptoin(BAD_XML_ERROR,%s("One and only one doc sum is expected per each input ID","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
+        raise Exceptoin(BAD_XML_ERROR %("One and only one doc sum is expected per each input ID","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
     
     for docSum in sumElements:
         id = docSum.find('Id').text
         name = [x.text for x in docSum.findall("Item") if x.get('Name') == "ScientificName"]
         if len (name) != 1:
-            raise Exception(BAD_XML_ERROR,%s("One and only one ID is expected per each doc sum","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
+            raise Exception(BAD_XML_ERROR %("One and only one ID is expected per each doc sum","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
         idToName[id] = name[0]
 
     return idToName
