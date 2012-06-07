@@ -4,9 +4,7 @@ use JSON;
 
 our @VERSION=1.0;
 
-#load the registry file
-#my$ads_ref=load_config();
-process([1,2,3],1);
+
 sub process{
 	my$names_file=shift;
 	my$adapters_file=shift;
@@ -16,25 +14,24 @@ sub process{
 	my$jobId=(split qr(\/), $names_file)[-1];
 	$jobId=(split(qr(\.),$jobId))[0];
 	
-	#data
-#TODO:	#Find input file creation date
-	my$sub_date="1 1 1";
+	#date
+	my$sub_date=localtime;
 	
-	#obtain the names
+	#load the names to process
 	open(my$NF,"<$names_file") or return "Cannot load names file: $!\n";
 	my@names=(<$NF>);
 	close $NF;
 	
 	#load adapters registry
 	my$ad_ref=load_adapters($adapters_file);
-	my$res=query_sources($names_file,$ad_ref);
+	my$res=query_sources(join('',@names),$ad_ref);
 	$res=merge($res);
 	write_output($res,"$target_dir/$jobId.json",$jobId,$sub_date, $ad_ref);
 	kill $names_file;
 	return 0;
 }
 
-
+#TODO: Parallelize
 #send the name batch to each adapter
 sub query_sources{
 	my$names_file=shift;
@@ -42,8 +39,9 @@ sub query_sources{
 	my@results;
 	foreach(@{$adapters_ref}){
 		my%source=%{$_};
-		my$res=decode_json(system("$source{call} $names_file")); #TODO: separate cases with names vs. filenames
+		my$res=decode_json(system("cat $names_file | $source{call}")); 
 		$res->{sourceId}=$source{id};
+		$res->{sourceRank}=$source{rank};
 		push @results, $res;
 	}
 	return \@results;
@@ -55,15 +53,20 @@ sub merge {
 	my%matches;
 	foreach(@{$results}){ #for every source
 		my$res=$_;
+		if($res->{status} ne 200){ #there was a failure
+#TODO: Error message should go in the job source metadata
+			next;	
+		}
 		my$sourceid=$res->{sourceId};
+		my$rank=$res->{rank};
 		my@names=@{$res->{names}}; 
 		foreach(@names){ #for all the submitted names
 			my%input=%{$_};
 			
-			#initializes the array if it doesn't exist yet
-			if(!$matches{$input{submittedName}}) { 
-				$matches{$input{submittedName}} =();			
-			}
+#			#initializes the array if it doesn't exist yet
+#			if(!$matches{$input{submittedName}}) { 
+#				$matches{$input{submittedName}} =();			
+#			}
 
 			#builds the output object
 			my$output = {
@@ -75,7 +78,7 @@ sub merge {
 				annotations=>$input{annotations}
 			};
 			
-			push @{$matches{$input{submittedName}}}, $output;
+			@{$matches{$input{submittedName}}}[$rank]=$output;
 		} #end of submitted names	
 		
 	} #end of source
@@ -88,7 +91,7 @@ sub write_output{
 	my$filename=shift;
 	my$jobid=shift;
 	my$sub_date=shift;
-	my$sources=extract_meta(shift);
+	my$sources=extract_meta(shift); #extract the source metadata from the adapters
 	
 	
 	my$meta={
@@ -106,14 +109,14 @@ sub write_output{
 
 #Extract metadata from the sources
 sub extract_meta{
-	
+	return my%dummy;
 }
 
 sub load_adapters{
 	my$adapters_file=shift;
 	open(my$ADA, "<$adapters_file") or die "Cannot load adapter configuration file $adapters_file: $!";
-	my@config=(<$ADA>);
+	my@adapters=(<$ADA>);
 	close $ADA;
-	my@adapters=decode_json(join '',@config);
-	return \@adapters;
+	my$adapters_ref=decode_json(join '',@adapters); 
+	return $adapters_ref;
 }
