@@ -1,4 +1,5 @@
 import urllib
+import time
 import sys
 import json
 from xml.etree.ElementTree import fromstring
@@ -78,6 +79,7 @@ if __name__ == '__main__':
         for t in sys.stdin:
             term = t[0:-1]
             id = search_NCBI_for_ids(term)
+            time.sleep(0.1)
             if id is not None:
                 id2term[id] = term
             res[term] = (id,None)

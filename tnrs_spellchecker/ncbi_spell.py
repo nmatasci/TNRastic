@@ -1,6 +1,7 @@
 import urllib
 import sys
 import json
+import time
 from xml.etree.ElementTree import fromstring
 
 BASE_SPELL_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/espell.fcgi"
@@ -47,6 +48,7 @@ if __name__ == '__main__':
         for t in sys.stdin:
             term = t[0:-1]
             matchedName = spellcheck_by_ncbi(term)
+            time.sleep(0.1)
             res[term] = matchedName
         
         jres["status"] = "200"
