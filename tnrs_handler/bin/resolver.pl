@@ -6,19 +6,22 @@ our @VERSION=1.0;
 
 test();
 sub test{
-open(my$TD,"<../../testdata/test.json") or die "Cannot open testdata: $!\n";
+my$ad_ref=load_adapters();
+open(my$TD,"</home/nmatasci/TNRastic/testdata/test.json") or die "Cannot open testdata: $!\n";
 my@test=(<$TD>);
 close $TD;
+
 my$res = decode_json( join '',@test );
 my@results;
 		$res->{sourceId}=0;
 		$res->{sourceRank}=0;
 		push @results, $res;
-		$res->{sourceId}=1;
-		$res->{sourceRank}=1;
-		push @results, $res;
+		my%res2=%{$res};
+		$res2{sourceId}=1;
+		$res2{sourceRank}=1;
+		push @results, \%res2;
 		$res=merge(\@results);
-		write_output($res,"../../testdata/newtest.out",'newtest',localtime,'');
+		write_output($res,"/home/nmatasci/TNRastic/testdata/newtest.out",'newtest',localtime,'');
 }
 
 
@@ -68,6 +71,7 @@ sub query_sources{
 sub merge {
 	my$results=shift;
 	my%matches;
+	my%output;
 	foreach(@{$results}){ #for every source
 		my$res=$_;
 		if($res->{status} ne 200){ #there was a failure
@@ -79,7 +83,10 @@ sub merge {
 		my@names=@{$res->{names}}; 
 		foreach(@names){ #for all the submitted names
 			my%input=%{$_};
-			
+			if(!$input{matchedName} || $input{matchedName} eq 'null'){
+				next;	
+			}
+
 
 			#builds the output object
 			my$output = {
@@ -89,21 +96,25 @@ sub merge {
 				uri=>$input{uri},
 				score=>$input{score},
 				annotations=>$input{annotations},
+				
 			};
 			@{$matches{$input{submittedName}}}[$rank]=$output;
+
 		} #end of matches
-		
+
 	} #end of source
 	return \%matches;
 }
 
 
 sub write_output{
-	my$output=shift;
+	my$results=shift;
 	my$filename=shift;
 	my$jobid=shift;
 	my$sub_date=shift;
 	my$sources=extract_meta(shift); #extract the source metadata from the adapters
+	
+	my$output;
 	
 	
 	my$meta={
@@ -112,6 +123,20 @@ sub write_output{
 		sub_date => $sub_date
 	};
 	$output->{metadata}=$meta;
+	my@names;
+	
+	for my$key (keys %{$results}){
+		my@matches=@{$results->{$key}};
+		my$entry ={
+			submittedName=> $key,
+            matchCount=> scalar(@matches),
+            matches => \@matches		
+		};
+		push @names, $entry;	
+	}
+	
+	$output->{names}=\@names;
+	
 	$output = encode_json($output);
 	open(my$OF,">$filename") or return "Cannot open output file $filename: $!\n";
 	print $OF $output;
