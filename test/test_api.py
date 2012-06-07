@@ -5,40 +5,31 @@ import json
 from xml.etree.ElementTree import fromstring
 
 
-BASE_API_URL = "http://localhost/tnrastic"
+BASE_SUBMIT_URL = "http://localhost/submit"
+BASE_RET_URL = "http://localhost/retrieve"
 
 BAD_XML_ERROR = "NCBI XML could not be parsed: %s\n (quary=%s)"
 MP_ID_ERROR = "We expect one ID back from NCBI, but we got more than one ID. Oops!"
 
-def test_tnrs_api(search_terms):
-    # Search the taxanomy DB of NCBI for a given term
-    parameters={"db":'taxonomy',"term":search_term}
+def call_tnrs_api(search_terms):
 
-    # Build URL and send make the request
-    url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
-    f = urllib.urlopen(url)
-    data = f.read()
-    f.close()
+    # Submit request for a list of taxon IDs
+    parameters={"query":"\n".join(search_term)}
 
-    # Parse the resulting XML file (no automatic validation for now. We do have DTDs that we can later use to do validation) 
-    dom = fromstring(data)
+    # Send the request (POST) and get the job id
+    f = urllib.urlopen(BASE_SUBMIT_URL,urllib.urlencode(parameters))
 
-    # Find IdList and make sure it is not empty
-    idListElement = dom.findall("IdList")    
-    if len(idListElement) != 1:
-        raise Exception(BAD_XML_ERROR %("Number of IdList elements is not right",url))
-    
-    # Find the retrieved IDs
-    idList = idListElement[0].findall("Id")
-
-        
-    if len(idList) == 0:
-        return None
-    elif len(idList) > 1:
-        raise MP_ID_ERROR
+    # keep checking the results
+    f = urllib.urlopen(id_url)
+    while f.getcode() == 202:
+        f = urllib.urlopen(id_url)
+        time.sleep(1)
+    if f.getcode() == 200:
+        data = f.read()
+        f.close()
+        return data
     else:
-        id = idList[0].text
-        return id
+        raise Exception ("API call not successful.",f.getcode())
 
 def get_name_for_ids(ids):
 
