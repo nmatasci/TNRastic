@@ -1,4 +1,5 @@
 import urllib
+import time
 import sys
 import json
 from xml.etree.ElementTree import fromstring
@@ -17,7 +18,7 @@ def search_NCBI_for_ids(search_term):
 
     # Build URL and send make the request
     url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
-    f = urllib.urlopen(url)
+    f = urllib.urlopen(BASE_SEARCH_QUARY,urllib.urlencode(parameters))
     data = f.read()
     f.close()
 
@@ -49,7 +50,7 @@ def get_name_for_ids(ids):
     parameters={"db":'taxonomy',"id":",".join(ids)}
 
     # Build URL and send make the request
-    f = urllib.urlopen("%s?%s" %(BASE_SUMMARY_QUARY,urllib.urlencode(parameters)))
+    f = urllib.urlopen(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))
     data = f.read()
     f.close()
 
@@ -59,13 +60,13 @@ def get_name_for_ids(ids):
     # Find IdList and make sure it is not empty
     sumElements = dom.findall("DocSum")
     if len(sumElements) != len(ids):
-        raise Exceptoin(BAD_XML_ERROR)
+        raise Exceptoin(BAD_XML_ERROR %("One and only one doc sum is expected per each input ID","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
     
     for docSum in sumElements:
         id = docSum.find('Id').text
         name = [x.text for x in docSum.findall("Item") if x.get('Name') == "ScientificName"]
         if len (name) != 1:
-            raise Exception(BAD_XML_ERROR)
+            raise Exception(BAD_XML_ERROR %("One and only one ID is expected per each doc sum","%s?%s"%s(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))))
         idToName[id] = name[0]
 
     return idToName
@@ -78,6 +79,7 @@ if __name__ == '__main__':
         for t in sys.stdin:
             term = t[0:-1]
             id = search_NCBI_for_ids(term)
+            time.sleep(0.1)
             if id is not None:
                 id2term[id] = term
             res[term] = (id,None)
@@ -103,4 +105,3 @@ if __name__ == '__main__':
         jres["names"] = []
         
     print json.dumps(jres)
-    
