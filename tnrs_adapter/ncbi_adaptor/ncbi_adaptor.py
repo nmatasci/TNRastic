@@ -85,7 +85,7 @@ if __name__ == '__main__':
         for id in id2names.keys():
             res[id2term[id]] = ("%s/%s" %(TAXON_URL_BASE,res[id2term[id]][0]), id2names[id])
         
-        jres["status"] = 200
+        jres["status"] = "200"
         jres["errorMessage"] = ""
         jres["names"] = []
         
@@ -93,12 +93,12 @@ if __name__ == '__main__':
             jres["names"].append({
                     "submittedName":t,
                     "matchedName":t if res[t][1] is not None else None,
-                    "score":1 if res[t][1] is not None else 0,
+                    "score":"1" if res[t][1] is not None else "0",
                     "uri":res[t][0],
                     "annotations":{},
                     "acceptedName":res[t][1]})
     except Exception as e:
-        jres["status"] = 500
+        jres["status"] = "500"
         jres["errorMessage"] = str(e)
         jres["names"] = []
         
