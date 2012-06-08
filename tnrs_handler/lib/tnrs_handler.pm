@@ -6,18 +6,16 @@ use Digest::MD5 qw(md5_hex);
 
 our $VERSION = '0.1';
 
-
-my $config_file_path = "/home/nmatasci/TNRastic/tnrs_handler/handler_config.json";
+my $config_file_path = "../handler_config.json";
 my $cfg              = init($config_file_path);
 
 my $adapters_file = $cfg->{adapters_file};
 my $host          = $cfg->{host};
 my $storage       = $cfg->{storage};
 my $tempdir       = $cfg->{tempdir};
-my $MAX_PIDS      = $cfg->{MAX_PIDS};
+my $MAX_PIDS      = $cfg->{MAX_PIDS};        #not currently used
 
 my $n_pids = 0;
-$SIG{CHLD} = "IGNORE";
 
 sub init {
 	my $config_file = shift;
@@ -32,16 +30,18 @@ sub init {
 
 	my $tempdir = $cfg_ref->{tempdir};
 
-	#make the tempdir
+	#Creates the tempdir
 	mkdir $tempdir;
 
-	  #wipe the tempdir
-	  opendir( my $DIR, $tempdir ) || die "can't opendir $tempdir: $!";
-	my @files = grep ( !/^\.+$/, readdir $DIR );
-	closedir $DIR;
-	for (@files) {
-		my $k = unlink "$tempdir/$_";
-	}
+	#Wipe the tempdir clean
+	eval {
+		opendir( my $DIR, $tempdir ) || die "can't opendir $tempdir: $!";
+		my @files = grep ( !/^\.+$/, readdir $DIR );
+		closedir $DIR;
+		for (@files) {
+			my $k = unlink "$tempdir/$_";
+		}
+	};
 	mkdir $cfg_ref->{storage};
 	return $cfg_ref;
 }
@@ -49,17 +49,47 @@ sub init {
 #TODO: Date format
 #TODO: Count sources
 #TODO: Sources metadata
+#TODO: Add cache
+#TODO: Add spellchecker
+#TODO: File support
 
+
+#Information
 get '/' => sub {
-	template 'index';
-};
-any [ 'get', 'post' ] => '/status' => sub {
-	return "Up!\n";
+	my $message = qq{
+Welcome to TNRastic, the Phylotastic Taxonomic Name Resolution Service.
+
+Submit a list of scientific names to obtain the accepted name across various taxonomic sources.
+
+Usage:
+/submit
+	POST a list of scientific names to the service and retrieve a token.
+	Parameters: 
+		-query:	newline separated list of scientific names
+	Returns: JSON object containing a token to access the results.
+	Example: $host/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert
+
+/retrieve/<token>
+	GET the result of a TNRastic query.
+	Returns: JSON object containing the accepted names.
+	Example: $host/retrieve/b6356e63f0c39d58066c1e772e24ff6f	
+	
+		
+To learn more, please visit http://www.evoio.org/wiki/Phylotastic/TNRS.
+			
+	};
+	return $message;
 };
 
+#Status
+any [ 'get', 'post' ] => '/status' => sub {
+	return encode_json( { "status" => "OK" } );
+};
+
+#Submit
 any [ 'post', 'get' ] => '/submit' => sub {
 
-	#examine contents
+	
 	my $para = request->params;
 
 	if ( !defined($para) || !$para->{query} ) {
@@ -71,13 +101,13 @@ any [ 'post', 'get' ] => '/submit' => sub {
 	else {
 		my $names = $para->{query};
 		my $fn = md5_hex( $names, time );
-		open( my $TF, ">$tempdir/$fn.tmp" ) or error_code('generic');
+		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
 		print $TF $names;
 		close $TF;
-		my $status = submit("$tempdir/$fn.tmp");
-		my $uri  = "$host/$fn";
-		my $date = localtime;
-		my $json = {
+		my $status = _submit("$tempdir/$fn.tmp");
+		my $uri    = "$host/$fn";
+		my $date   = localtime;
+		my $json   = {
 			"submit date" => $date,
 			token         => $fn,
 			uri           => "$host/retrieve/$fn",
@@ -88,11 +118,11 @@ any [ 'post', 'get' ] => '/submit' => sub {
 	}
 };
 
+#Retrieve
 get '/retrieve/:job_id' => sub {
-	wait;
 	my $job_id = param('job_id');
 	if ( -f "$storage/$job_id.json" ) {
-		open( my $RF, "<$storage/$job_id.json" ) or error_code("generic");
+		open( my $RF, "<$storage/$job_id.json" ) or _error_code("generic");
 		my @tmp = (<$RF>);
 		close($RF);
 		return join '', @tmp;    #is already JSON
@@ -112,27 +142,35 @@ get '/retrieve/:job_id' => sub {
 
 };
 
-sub error_code {
+#Error handling
+sub _error_code {
 	status 'internal_server_error';
 	return encode_json(
-		{ "message" => "General error. Please retry later\n" } );
+		{ "message" => "General error. Please try again later" } );
 
 }
 
-sub submit {
-	$SIG{CHLD} = "IGNORE";
+#Forks a process to interrogate the TNRSs 
+sub _submit {
+	$SIG{CHLD} = "IGNORE"; #Avoids zombie processes
 	my $filename = shift;
-	fork and return;
-	my$pid=$$;
-	$n_pids++;
+	fork and return; #Spawn a child process and returns to the http handler fuction 
+	
+	#Following code run by the children
+	
+	my $pid = $$; #PID of the child process
 
+	#	$n_pids++;
 	#	if ( $n_pids >= $MAX_PIDS ) {
 	#		sleep $n_pids * 10;
 	#	}
+
 	system "./resolver.pl $filename $adapters_file $storage"
 	  ;    # Some long running process.
-	$n_pids--;
-	kill 9,$pid;
+	  
+	#	$n_pids--;
+	
+	kill 9, $pid; #Process commit suicide
 
 }
 
