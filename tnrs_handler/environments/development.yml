@@ -5,6 +5,7 @@
 #          application server)
 # file:    log message to a file in log/
 logger: "console"
+#logger: "file"
 
 # the log level for this environment
 # core is the lowest, it shows Dancer's core log messages as well as yours

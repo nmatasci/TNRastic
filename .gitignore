@@ -16,3 +16,4 @@ tnrs_handler/logs/
 .git
 testdata/*.out
 testdata/out/*
+tnrs_handler/handler_config.json

@@ -6,30 +6,47 @@ use Digest::MD5 qw(md5_hex);
 
 our $VERSION = '0.1';
 
-#my$config_file_path="/home/nmatasci/test.cfg";
-##my$cfg=load_config($config_file_path);
-#my$adapters_file=$cfg->{adapters};
-#my$tempdir=$cfg->{tempdir};
-#my$storage=$cfg->{storage};
-my $storage       = "/home/nmatasci/TNRastic/testdata/out";
-my $adapters_file = "tnrs_adapter/adapters.json";
-my $host          = "http://128.196.142.37:3000";
-my $tempdir       = "/tmp/tnrs_handler";
-my $n_pids        = 0;
-my $MAX_PIDS      = 20;
-#make the tempdir
-my$f=mkdir $tempdir;
-mkdir $storage;
-#wipe the tempdir
-opendir(my$DIR, $tempdir) || die "can't opendir $tempdir: $!";
-my@files= grep (!/^\.+$/ , readdir $DIR);
-closedir $DIR;
-for(@files){
-	my$k=unlink "$tempdir/$_";
+
+my $config_file_path = "/home/nmatasci/TNRastic/tnrs_handler/handler_config.json";
+my $cfg              = init($config_file_path);
+
+my $adapters_file = $cfg->{adapters_file};
+my $host          = $cfg->{host};
+my $storage       = $cfg->{storage};
+my $tempdir       = $cfg->{tempdir};
+my $MAX_PIDS      = $cfg->{MAX_PIDS};
+
+my $n_pids = 0;
+$SIG{CHLD} = "IGNORE";
+
+sub init {
+	my $config_file = shift;
+	open( my $CFG, "<$config_file" )
+	  or die "Cannot load handler configuration file $config_file: $!";
+	my @cfg = (<$CFG>);
+	close $CFG;
+	my $cfg_ref = decode_json( join '', @cfg );
+	my $host = $cfg_ref->{host};
+	$host = "$host:" . $cfg_ref->{port};
+	$cfg_ref->{host} = $host;
+
+	my $tempdir = $cfg_ref->{tempdir};
+
+	#make the tempdir
+	mkdir $tempdir;
+
+	  #wipe the tempdir
+	  opendir( my $DIR, $tempdir ) || die "can't opendir $tempdir: $!";
+	my @files = grep ( !/^\.+$/, readdir $DIR );
+	closedir $DIR;
+	for (@files) {
+		my $k = unlink "$tempdir/$_";
+	}
+	mkdir $cfg_ref->{storage};
+	return $cfg_ref;
 }
 
 #TODO: Date format
-#TODO: Config loader
 #TODO: Count sources
 #TODO: Sources metadata
 
@@ -43,12 +60,13 @@ any [ 'get', 'post' ] => '/status' => sub {
 any [ 'post', 'get' ] => '/submit' => sub {
 
 	#examine contents
-	wait;
 	my $para = request->params;
 
 	if ( !defined($para) || !$para->{query} ) {
 		status 'bad_request';
-		return encode_json({"message"=>"Please specify a list of newline separated names"});
+		return encode_json(
+			{ "message" => "Please specify a list of newline separated names" }
+		);
 	}
 	else {
 		my $names = $para->{query};
@@ -57,7 +75,6 @@ any [ 'post', 'get' ] => '/submit' => sub {
 		print $TF $names;
 		close $TF;
 		my $status = submit("$tempdir/$fn.tmp");
-
 		my $uri  = "$host/$fn";
 		my $date = localtime;
 		my $json = {
@@ -78,41 +95,44 @@ get '/retrieve/:job_id' => sub {
 		open( my $RF, "<$storage/$job_id.json" ) or error_code("generic");
 		my @tmp = (<$RF>);
 		close($RF);
-		return join '', @tmp; #is already JSON
+		return join '', @tmp;    #is already JSON
 	}
 	elsif ( -f "$tempdir/$job_id.tmp" ) {
 
 	#TODO: add test for freshness: if request is older then 24h, then return 404
 		status 'accepted';
-		return encode_json({"message"=>"Job $job_id is still being processed."});
+		return encode_json(
+			{ "message" => "Job $job_id is still being processed." } );
 	}
 	else {
 		status 'not_found';
-		return encode_json({"message" => "Error. Job $job_id doesn't exits."});
+		return encode_json(
+			{ "message" => "Error. Job $job_id doesn't exits." } );
 	}
 
 };
 
 sub error_code {
 	status 'internal_server_error';
-	return encode_json({"message"=>"General error. Please retry later\n"});
+	return encode_json(
+		{ "message" => "General error. Please retry later\n" } );
 
 }
 
 sub submit {
-	wait;
+	$SIG{CHLD} = "IGNORE";
 	my $filename = shift;
-	my $pm       = new Parallel::ForkManager($MAX_PIDS);
-
+	fork and return;
+	my$pid=$$;
 	$n_pids++;
-	my $pid = $pm->start and return;
-#	if ( $n_pids >= $MAX_PIDS ) {
-#		sleep $n_pids * 10;
-#	}
+
+	#	if ( $n_pids >= $MAX_PIDS ) {
+	#		sleep $n_pids * 10;
+	#	}
 	system "./resolver.pl $filename $adapters_file $storage"
 	  ;    # Some long running process.
 	$n_pids--;
-	$pm->finish;
+	kill 9,$pid;
 
 }
 
