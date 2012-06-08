@@ -1,3 +1,11 @@
+'''
+   This script reads taxon names from standard input, one per line, and searches NCBI taxonomy DB 
+   for matches. If matches are found, taxonomy is searched again to find the accepted name for the queried names. 
+   Results are returned as a json file.
+
+   Developer: Siavash Mirarab (smirarab@gmail.com) 
+'''
+
 import urllib
 import time
 import sys
@@ -13,12 +21,15 @@ BAD_XML_ERROR = "NCBI XML could not be parsed: %s\n (quary=%s)"
 MP_ID_ERROR = "We expect one ID back from NCBI, but we got more than one ID. Oops!"
 HTML_ERROR = "HTML error in accessing NCBI"
 
+
+'''Search for a given name and find its taxonomic ID.'''
 def search_NCBI_for_ids(search_term):
 
     # Search the taxanomy DB of NCBI for a given term
     parameters={"db":'taxonomy',"term":search_term,"tool":"tnrastic"}
 
-    url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))# URL just for outputting errors
+    url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters)) # URL just for outputting errors
+
     # Search taxonomy for a given term. In case of an error, wait a second and try again. 
     # Do this for a maximum of 20 times
     succ = False
@@ -43,6 +54,7 @@ def search_NCBI_for_ids(search_term):
         # If error in the XML file, try again
         succ = dom.find("ERROR") is None or dom.find("ERROR").text is None
 
+    # Basic error handling
     if f.getcode() != 200:
         raise Exception (HTML_ERROR, f.getcode())
     if not succ:
@@ -56,7 +68,7 @@ def search_NCBI_for_ids(search_term):
     # Find the retrieved IDs
     idList = idListElement[0].findall("Id")
 
-        
+    # We expect to get only one id back. Find that one ID and return it.  
     if len(idList) == 0:
         return None
     elif len(idList) > 1:
@@ -65,6 +77,8 @@ def search_NCBI_for_ids(search_term):
         id = idList[0].text
         return id
 
+''' For a given list of ids this function returns the accepted names. 
+Results are returned as a dictionary'''
 def get_name_for_ids(ids):
 
     idToName = {}
@@ -101,15 +115,15 @@ if __name__ == '__main__':
     try:
         for t in sys.stdin:
             term = t.replace("\n","")
-            id = search_NCBI_for_ids(term)            
+            id = search_NCBI_for_ids(term) # First search the name to find the IDs     
             time.sleep(0.01)# a bit of sleep to help NCBI
             if id is not None:
                 id2term[id] = term
                 #print >>sys.stderr, "%s was mapped to %s " %(term,id)
             res[term] = (id,None)
-        id2names = get_name_for_ids(id2term.keys())
+        id2names = get_name_for_ids(id2term.keys()) # search with found IDs to grab the taxonomic name. 
         for id in id2names.keys():
-            res[id2term[id]] = ("%s/%s" %(TAXON_URL_BASE,res[id2term[id]][0]), id2names[id])
+            res[id2term[id]] = ("%s/%s" %(TAXON_URL_BASE,res[id2term[id]][0]), id2names[id]) # Build URL from IDs
         
         jres["status"] = "200"
         jres["errorMessage"] = ""
