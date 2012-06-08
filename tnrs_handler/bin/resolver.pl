@@ -17,13 +17,13 @@ sub process {
 	$jobId = ( split( qr(\.), $jobId ) )[0];
 
 	#date
-	my $sub_date = localtime;
+	my $submitDate = localtime;
 
 	#load adapters registry
 	my $ad_ref = load_adapters($adapters_file);
 	my $res = query_sources( $names_file, $ad_ref );
 	$res = merge($res);
-	write_output( $res, "$target_dir/$jobId.json", $jobId, $sub_date, $ad_ref );
+	write_output( $res, "$target_dir/$jobId.json", $jobId, $submitDate, $ad_ref );
 	unlink $names_file;
 	return 0;
 }
@@ -95,7 +95,7 @@ sub write_output {
 	my $results  = shift;
 	my $filename = shift;
 	my $jobid    = shift;
-	my $sub_date = shift;
+	my $submitDate = shift;
 	my $sources  =
 	  extract_meta(shift);    #extract the source metadata from the adapters
 
@@ -104,7 +104,7 @@ sub write_output {
 	my $meta = {
 		jobId    => $jobid,
 		sources  => $sources,
-		sub_date => $sub_date
+		submitDate => $submitDate
 	};
 	$output->{metadata} = $meta;
 	my @names;
