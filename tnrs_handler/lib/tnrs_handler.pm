@@ -14,10 +14,22 @@ our $VERSION = '0.1';
 my $storage       = "/home/nmatasci/TNRastic/testdata/out";
 my $adapters_file = "tnrs_adapter/adapters.json";
 my $host          = "http://128.196.142.37:3000";
-my $tempdir       = "/tmp";
+my $tempdir       = "/tmp/tnrs_handler";
 my $n_pids        = 0;
 my $MAX_PIDS      = 5;
+#make the tempdir
+my$f=mkdir $tempdir;
+print "$f\n";
+#wipe the tempdir
+opendir(my$DIR, $tempdir) || die "can't opendir $tempdir: $!";
+my@files= grep (!/^\.+$/ , readdir $DIR);
+closedir $DIR;
+for(@files){
+	my$k=unlink "$tempdir/$_";
+}
 
+
+#TODO: error messages as JSON
 #TODO: Date format
 #TODO: Config loader
 #TODO: Count sources
@@ -36,8 +48,7 @@ any [ 'post', 'get' ] => '/submit' => sub {
 	wait;
 	my $para = request->params;
 
-	$para->{query};
-	if ( !defined($para) ) {
+	if ( !defined($para) || !$para->{query} ) {
 		status 'bad_request';
 		return "Please specify a list of newline separated names\n";
 	}
