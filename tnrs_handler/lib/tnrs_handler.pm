@@ -60,7 +60,6 @@ any [ 'get', 'post' ] => '/status' => sub {
 any [ 'post', 'get' ] => '/submit' => sub {
 
 	#examine contents
-
 	my $para = request->params;
 
 	if ( !defined($para) || !$para->{query} ) {
@@ -121,13 +120,11 @@ sub error_code {
 }
 
 sub submit {
-#	wait;
+	$SIG{CHLD} = "IGNORE";
 	my $filename = shift;
-#	my $pm       = new Parallel::ForkManager($MAX_PIDS);
-	my$k=fork and return;
+	fork and return;
 	my$pid=$$;
 	$n_pids++;
-	#my $pid = $pm->start and return;
 
 	#	if ( $n_pids >= $MAX_PIDS ) {
 	#		sleep $n_pids * 10;
@@ -135,9 +132,8 @@ sub submit {
 	system "./resolver.pl $filename $adapters_file $storage"
 	  ;    # Some long running process.
 	$n_pids--;
-	wait;
 	kill 9,$pid;
-#	$pm->finish;
+
 }
 
 true;
