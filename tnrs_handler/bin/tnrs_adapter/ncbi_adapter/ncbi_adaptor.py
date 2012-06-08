@@ -16,7 +16,7 @@ HTML_ERROR = "HTML error in accessing NCBI"
 def search_NCBI_for_ids(search_term):
 
     # Search the taxanomy DB of NCBI for a given term
-    parameters={"db":'taxonomy',"term":search_term}
+    parameters={"db":'taxonomy',"term":search_term,"tool":"tnrastic"}
 
     url = "%s?%s" %(BASE_SEARCH_QUARY,urllib.urlencode(parameters))# URL just for outputting errors
     # Search taxonomy for a given term. In case of an error, wait a second and try again. 
@@ -70,7 +70,7 @@ def get_name_for_ids(ids):
     idToName = {}
 
     # Get Taxon summary from  NCBI taxonomy for a given list of IDs
-    parameters={"db":'taxonomy',"id":",".join(ids)}
+    parameters={"db":'taxonomy',"id":",".join(ids),"tool":"tnrastic"}
 
     # Build URL and send make the request
     f = urllib.urlopen(BASE_SUMMARY_QUARY,urllib.urlencode(parameters))
