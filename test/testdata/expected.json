@@ -1,0 +1,58 @@
+{
+   "metadata": {
+       "jobId": "some_url",
+       "submitDate": "some_date",
+       "sources": [{
+           "sourceId": "NCBI",
+           "name": "NCBI Taxonomy",
+           "uri": "http://www.ncbi.nlm.nih.gov/taxonomy",
+           "rank": 3,
+           "status": "online",
+           "annotations": {}
+       }, {
+           "sourceId": "iPlant TNRS",
+           "name": "iPlant Collaborative TNRS v3.0",
+           "uri": "http://tnrs.iplantcollaborative.org/",
+           "rank": 2,
+           "status": "online",
+           "annotations": {"Authority": "Author attributed to the accepted name (where applicable)."}
+       }]
+   },
+   "names": [
+   {
+       "submittedName": "Chlamydomonas_smithii",
+       "matchCount": 1,
+       "matches": [{
+           "sourceId": "NCBI",
+           "matchedName": "Chlamydomonas_smithii",
+           "acceptedName": "Chlamydomonas reinhardtii",
+           "uri": "http://www.ncbi.nlm.nih.gov/taxonomy/3055",
+           "annotations": {},
+           "score": "1"
+       }]
+   }, {
+       "submittedName": "Arabidopsis lyrata",
+       "matchCount": 3,
+       "matches": [
+	{
+           "sourceId": "NCBI",
+           "matchedName": "Arabidopsis lyrata",
+           "acceptedName": "Arabidopsis lyrata",
+           "uri": "http://www.ncbi.nlm.nih.gov/taxonomy/59689",
+           "annotations": { },
+           "score": "1"
+       },
+	{
+           "sourceId": "iPlant",
+           "matchedName": "Arabidopsis lyrata",
+           "acceptedName": "Arabidopsis lyrata",
+           "uri": "http://www.tropicos.org/Name/50113743",
+           "annotations": { },
+           "score": "1"
+       }
+
+	]
+   } 
+]
+}
+
