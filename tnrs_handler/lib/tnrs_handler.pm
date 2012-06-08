@@ -19,6 +19,7 @@ my $n_pids        = 0;
 my $MAX_PIDS      = 5;
 #make the tempdir
 my$f=mkdir $tempdir;
+mkdir $storage;
 #wipe the tempdir
 opendir(my$DIR, $tempdir) || die "can't opendir $tempdir: $!";
 my@files= grep (!/^\.+$/ , readdir $DIR);
@@ -27,7 +28,6 @@ for(@files){
 	my$k=unlink "$tempdir/$_";
 }
 
-#TODO: error messages as JSON
 #TODO: Date format
 #TODO: Config loader
 #TODO: Count sources
@@ -48,12 +48,12 @@ any [ 'post', 'get' ] => '/submit' => sub {
 
 	if ( !defined($para) || !$para->{query} ) {
 		status 'bad_request';
-		return "Please specify a list of newline separated names\n";
+		return encode_json({"message"=>"Please specify a list of newline separated names"});
 	}
 	else {
 		my $names = $para->{query};
 		my $fn = md5_hex( $names, time );
-		open( my $TF, ">$tempdir/$fn.tmp" ) or die "cannot write file: $!\n";#error_code('generic');
+		open( my $TF, ">$tempdir/$fn.tmp" ) or error_code('generic');
 		print $TF $names;
 		close $TF;
 		my $status = submit("$tempdir/$fn.tmp");
@@ -78,24 +78,24 @@ get '/retrieve/:job_id' => sub {
 		open( my $RF, "<$storage/$job_id.json" ) or error_code("generic");
 		my @tmp = (<$RF>);
 		close($RF);
-		return join '', @tmp;
+		return join '', @tmp; #is already JSON
 	}
 	elsif ( -f "$tempdir/$job_id.tmp" ) {
 
 	#TODO: add test for freshness: if request is older then 24h, then return 404
 		status 'accepted';
-		return "Job $job_id is still being processed.\n";
+		return encode_json({"message"=>"Job $job_id is still being processed."});
 	}
 	else {
 		status 'not_found';
-		return "Error. Job $job_id doesn't exits.\n";
+		return encode_json({"message" => "Error. Job $job_id doesn't exits."});
 	}
 
 };
 
 sub error_code {
 	status 'internal_server_error';
-	return "General error. Please retry later\n";
+	return encode_json({"message"=>"General error. Please retry later\n"});
 
 }
 
