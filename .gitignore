@@ -15,4 +15,4 @@ Thumbs.db
 tnrs_handler/logs/
 .git
 testdata/*.out
-
+testdata/out/*

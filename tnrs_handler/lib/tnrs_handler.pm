@@ -19,7 +19,6 @@ my $n_pids        = 0;
 my $MAX_PIDS      = 5;
 #make the tempdir
 my$f=mkdir $tempdir;
-print "$f\n";
 #wipe the tempdir
 opendir(my$DIR, $tempdir) || die "can't opendir $tempdir: $!";
 my@files= grep (!/^\.+$/ , readdir $DIR);
@@ -27,7 +26,6 @@ closedir $DIR;
 for(@files){
 	my$k=unlink "$tempdir/$_";
 }
-
 
 #TODO: error messages as JSON
 #TODO: Date format
@@ -55,10 +53,9 @@ any [ 'post', 'get' ] => '/submit' => sub {
 	else {
 		my $names = $para->{query};
 		my $fn = md5_hex( $names, time );
-		open( my $TF, ">$tempdir/$fn.tmp" ) or error_code('generic');
+		open( my $TF, ">$tempdir/$fn.tmp" ) or die "cannot write file: $!\n";#error_code('generic');
 		print $TF $names;
 		close $TF;
-
 		my $status = submit("$tempdir/$fn.tmp");
 
 		my $uri  = "$host/$fn";
