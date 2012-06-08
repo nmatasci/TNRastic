@@ -20,7 +20,7 @@
                 "Authority": "Author attributed to the accepted name (where applicable)."
             },
             "rank": 2,
-            "call": "perl -Iiplant tnrs_adapter/iplant/iplant.pl"
+            "call": "perl -Itnrs_adapter/iplant tnrs_adapter/iplant/iplant.pl"
         }
     ]
 }

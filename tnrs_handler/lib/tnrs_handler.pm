@@ -16,7 +16,7 @@ my $adapters_file = "tnrs_adapter/adapters.json";
 my $host          = "http://128.196.142.37:3000";
 my $tempdir       = "/tmp/tnrs_handler";
 my $n_pids        = 0;
-my $MAX_PIDS      = 5;
+my $MAX_PIDS      = 20;
 #make the tempdir
 my$f=mkdir $tempdir;
 mkdir $storage;
@@ -102,13 +102,13 @@ sub error_code {
 sub submit {
 	wait;
 	my $filename = shift;
-	my $pm       = new Parallel::ForkManager(2);
+	my $pm       = new Parallel::ForkManager($MAX_PIDS);
 
 	$n_pids++;
 	my $pid = $pm->start and return;
-	if ( $n_pids >= $MAX_PIDS ) {
-		sleep $n_pids * 10;
-	}
+#	if ( $n_pids >= $MAX_PIDS ) {
+#		sleep $n_pids * 10;
+#	}
 	system "./resolver.pl $filename $adapters_file $storage"
 	  ;    # Some long running process.
 	$n_pids--;
