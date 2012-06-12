@@ -5,7 +5,7 @@ use Parallel::ForkManager;
 use JSON;
 use Digest::MD5 qw(md5_hex);
 
-our $VERSION = '0.1';
+our $VERSION = '1.0';
 
 my $config_file_path = "../handler_config.json";
 my $cfg              = init($config_file_path);
@@ -47,12 +47,12 @@ sub init {
 	return $cfg_ref;
 }
 
-#TODO: Date format
-#TODO: Count sources
-#TODO: Sources metadata
+#TODO: Date format (in tnrs_resolver)
 #TODO: Add cache
 #TODO: Add spellchecker
 #TODO: File support
+#TODO: Job cancel
+#TODO: Auto redirects
 
 
 #Information
@@ -101,19 +101,34 @@ get '/submit' => sub {
 	}
 
 	elsif($para->{query}) {
-
+		my $names = $para->{query};
+		my $fn = md5_hex( $names, time );
+		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
+		print $TF $names;
+		close $TF;
+		my $status = _submit("$tempdir/$fn.tmp");
+		my $uri    = "$host/$fn";
+		my $date   = localtime;
+		my $json   = {
+			"submit date" => $date,
+			token         => $fn,
+			uri           => "$host/retrieve/$fn",
+			message       =>
+"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
+		};
 		return encode_json($json);
 	}
 };
 
-any [ 'post', 'get' ] => '/submit' => sub {
-
-	elsif ( defined($para->{file})  ){
-	
-		
-		
-	}
-}
+#TODO: file support
+#any [ 'post', 'get' ] => '/submit' => sub {
+#
+#	elsif ( defined($para->{file})  ){
+#	
+#		
+#		
+#	}
+#}
 
 #Retrieve
 get '/retrieve/:job_id' => sub {
@@ -139,26 +154,26 @@ get '/retrieve/:job_id' => sub {
 
 };
 
-
+#TODO: file support
 #stage
-sub _stage {
-		my $names = $para->{query};
-		my $fn = md5_hex( $names, time );
-		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
-		print $TF $names;
-		close $TF;
-		my $status = _submit("$tempdir/$fn.tmp");
-		my $uri    = "$host/$fn";
-		my $date   = localtime;
-		my $json   = {
-			"submit date" => $date,
-			token         => $fn,
-			uri           => "$host/retrieve/$fn",
-			message       =>
-"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
-		};
-		return $json;
-}
+#sub _stage {
+#		my $names = $para->{query};
+#		my $fn = md5_hex( $names, time );
+#		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
+#		print $TF $names;
+#		close $TF;
+#		my $status = _submit("$tempdir/$fn.tmp");
+#		my $uri    = "$host/$fn";
+#		my $date   = localtime;
+#		my $json   = {
+#			"submit date" => $date,
+#			token         => $fn,
+#			uri           => "$host/retrieve/$fn",
+#			message       =>
+#"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
+#		};
+#		return $json;
+#}
 
 #Error handling
 sub _error_code {
@@ -182,7 +197,7 @@ sub _submit {
 	#	if ( $n_pids >= $MAX_PIDS ) {
 	#		sleep $n_pids * 10;
 	#	}
-	process($filename,$adapters_file,$storage)
+	process($filename,$adapters_file,$storage);
 	  
 	#	$n_pids--;
 	
