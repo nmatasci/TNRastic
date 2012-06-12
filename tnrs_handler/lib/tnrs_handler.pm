@@ -5,7 +5,7 @@ use Parallel::ForkManager;
 use JSON;
 use Digest::MD5 qw(md5_hex);
 
-our $VERSION = '1.0';
+our $VERSION = '1.0.1';
 
 my $config_file_path = "../handler_config.json";
 my $cfg              = init($config_file_path);

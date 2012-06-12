@@ -6,7 +6,7 @@ use Exporter;
 our @ISA=qw(Exporter);
 our @EXPORT=qw(process);
 
-our @VERSION = 1.0;
+our @VERSION = 1.0.1;
 
 #process(@ARGV);
 #exit 0;
@@ -52,9 +52,8 @@ sub query_sources {
 			$res->{sourceId}   = $source{sourceId};
 			$res->{sourceRank} = $source{rank};
 		};
-		if(!$res || !defined($res->{errorMessage}) || $res->{errorMessage} eq '' ){
-			 $failures->{$source{sourceId}}={status=>500,errorMessage=>'General failure/Unknown'};
-			
+		if(!$res || !defined($res->{status})){
+			 $failures->{$source{sourceId}}={status=>500,errorMessage=>'General failure/Unknown'};		
 		}
 		elsif($res && $res->{status} == 200){
 			push @results, $res;
@@ -147,8 +146,8 @@ sub _extract_meta {
 	foreach(@{$sources->{adapters}}){
 		my%source=%{$_};
 		if($fails->{$source{sourceId}}){
-			$source{status}=$fails->{status}.": Fail";
-			$source{errorMessage}=$fails->{errorMessage};
+			$source{status}=$fails->{$source{sourceId}}->{status}.": Fail";
+			$source{errorMessage}=$fails->{$source{sourceId}}->{errorMessage};
 		} 
 		else{
 			$source{status}="200: OK";	
