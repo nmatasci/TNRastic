@@ -4,8 +4,8 @@
 # console: log messages to STDOUT (your console where you started the
 #          application server)
 # file:    log message to a file in log/
-logger: "console"
-#logger: "file"
+#logger: "console"
+logger: "file"
 
 # the log level for this environment
 # core is the lowest, it shows Dancer's core log messages as well as yours
@@ -26,3 +26,4 @@ show_errors: 1
 # DO NOT EVER USE THAT FEATURE IN PRODUCTION 
 # OR TINY KITTENS SHALL DIE WITH LOTS OF SUFFERING
 auto_reload: 0
+daemon: true
