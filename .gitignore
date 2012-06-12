@@ -17,3 +17,4 @@ tnrs_handler/logs/
 testdata/*.out
 testdata/out/*
 tnrs_handler/handler_config.json
+testdata/names.test*
