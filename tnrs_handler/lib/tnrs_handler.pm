@@ -1,4 +1,5 @@
 package tnrs_handler;
+use tnrs_resolver qw(process);
 use Dancer ':syntax';
 use Parallel::ForkManager;
 use JSON;
@@ -87,36 +88,32 @@ any [ 'get', 'post' ] => '/status' => sub {
 };
 
 #Submit
-any [ 'post', 'get' ] => '/submit' => sub {
-
+#any [ 'post', 'get' ] => '/submit' => sub {
+get '/submit' => sub {
 	
 	my $para = request->params;
 
-	if ( !defined($para) || !$para->{query} ) {
+	if ( !defined($para)  ) {
 		status 'bad_request';
 		return encode_json(
 			{ "message" => "Please specify a list of newline separated names" }
 		);
 	}
-	else {
-		my $names = $para->{query};
-		my $fn = md5_hex( $names, time );
-		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
-		print $TF $names;
-		close $TF;
-		my $status = _submit("$tempdir/$fn.tmp");
-		my $uri    = "$host/$fn";
-		my $date   = localtime;
-		my $json   = {
-			"submit date" => $date,
-			token         => $fn,
-			uri           => "$host/retrieve/$fn",
-			message       =>
-"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
-		};
+
+	elsif($para->{query}) {
+
 		return encode_json($json);
 	}
 };
+
+any [ 'post', 'get' ] => '/submit' => sub {
+
+	elsif ( defined($para->{file})  ){
+	
+		
+		
+	}
+}
 
 #Retrieve
 get '/retrieve/:job_id' => sub {
@@ -142,6 +139,27 @@ get '/retrieve/:job_id' => sub {
 
 };
 
+
+#stage
+sub _stage {
+		my $names = $para->{query};
+		my $fn = md5_hex( $names, time );
+		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
+		print $TF $names;
+		close $TF;
+		my $status = _submit("$tempdir/$fn.tmp");
+		my $uri    = "$host/$fn";
+		my $date   = localtime;
+		my $json   = {
+			"submit date" => $date,
+			token         => $fn,
+			uri           => "$host/retrieve/$fn",
+			message       =>
+"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
+		};
+		return $json;
+}
+
 #Error handling
 sub _error_code {
 	status 'internal_server_error';
@@ -164,9 +182,7 @@ sub _submit {
 	#	if ( $n_pids >= $MAX_PIDS ) {
 	#		sleep $n_pids * 10;
 	#	}
-
-	system "./resolver.pl $filename $adapters_file $storage"
-	  ;    # Some long running process.
+	process($filename,$adapters_file,$storage)
 	  
 	#	$n_pids--;
 	
