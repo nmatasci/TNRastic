@@ -26,7 +26,7 @@ sub init {
 	close $CFG;
 	my $cfg_ref = decode_json( join '', @cfg );
 	my $host = $cfg_ref->{host};
-	$host = "$host:" . $cfg_ref->{port};
+	$host=$cfg_ref->{port}?"$host:" . $cfg_ref->{port}:$host;
 	$cfg_ref->{host} = $host;
 
 	my $tempdir = $cfg_ref->{tempdir};
