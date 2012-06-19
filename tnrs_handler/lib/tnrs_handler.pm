@@ -7,7 +7,9 @@ use Digest::MD5 qw(md5_hex);
 
 our $VERSION = '1.0.1';
 
-my $config_file_path = "../handler_config.json";
+
+
+my $config_file_path = "handler_config.json";
 my $cfg              = init($config_file_path);
 
 my $adapters_file = $cfg->{adapters_file};
@@ -47,12 +49,16 @@ sub init {
 	return $cfg_ref;
 }
 
-#TODO: Date format (in tnrs_resolver)
-#TODO: Add cache
-#TODO: Add spellchecker
+
+#TODO: Move / to html in public
+#TODO: dynamic registry add
 #TODO: File support
 #TODO: Job cancel
 #TODO: Auto redirects
+#TODO: Date format (in tnrs_resolver)
+#TODO: Add cache
+#TODO: Add spellchecker
+
 
 
 #Information
@@ -99,13 +105,14 @@ get '/submit' => sub {
 			{ "message" => "Please specify a list of newline separated names" }
 		);
 	}
-
 	elsif($para->{query}) {
 		my $names = $para->{query};
 		my $fn = md5_hex( $names, time );
 		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
 		print $TF $names;
 		close $TF;
+		my$t=localtime;
+		info "Request submitted\t$t ", request->address(),"\t",request->user_agent();
 		my $status = _submit("$tempdir/$fn.tmp");
 		my $uri    = "$host/$fn";
 		my $date   = localtime;
