@@ -54,7 +54,7 @@ sub init {
 #TODO: dynamic registry add
 #TODO: File support
 #TODO: Job cancel
-#TODO: Auto redirects
+#DONE: Auto redirects
 #TODO: Date format (in tnrs_resolver)
 #TODO: Add cache
 #TODO: Add spellchecker
@@ -114,15 +114,17 @@ get '/submit' => sub {
 		my$t=localtime;
 		info "Request submitted\t$t ", request->address(),"\t",request->user_agent();
 		my $status = _submit("$tempdir/$fn.tmp");
-		my $uri    = "$host/$fn";
+		my $uri    = "$host/retrieve/$fn";
 		my $date   = localtime;
 		my $json   = {
 			"submit date" => $date,
 			token         => $fn,
-			uri           => "$host/retrieve/$fn",
+			uri           => $uri, #"$host/retrieve/$fn",
 			message       =>
-"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
+"Your request is being processed. You can retrieve the results at $uri."
 		};
+		status 'found';
+		redirect $uri;
 		return encode_json($json);
 	}
 };
@@ -140,6 +142,7 @@ get '/submit' => sub {
 #Retrieve
 get '/retrieve/:job_id' => sub {
 	my $job_id = param('job_id');
+	my $wait=param('wait')?param('wait'):0;
 	if ( -f "$storage/$job_id.json" ) {
 		open( my $RF, "<$storage/$job_id.json" ) or _error_code("generic");
 		my @tmp = (<$RF>);
@@ -148,10 +151,12 @@ get '/retrieve/:job_id' => sub {
 	}
 	elsif ( -f "$tempdir/$job_id.tmp" ) {
 
+			status 'found';	
+			return encode_json(
+			{ "message" => "Job $job_id is still being processed." } );	
+
 	#TODO: add test for freshness: if request is older then 24h, then return 404
-		status 'accepted';
-		return encode_json(
-			{ "message" => "Job $job_id is still being processed." } );
+
 	}
 	else {
 		status 'not_found';
