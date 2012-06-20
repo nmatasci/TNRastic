@@ -5,7 +5,7 @@ use Parallel::ForkManager;
 use JSON;
 use Digest::MD5 qw(md5_hex);
 
-our $VERSION = '1.1.0';
+our $VERSION = '1.1.1';
 
 my $config_file_path = "handler_config.json";
 my $cfg              = init($config_file_path);
@@ -128,11 +128,10 @@ any [ 'post', 'get' ] => '/submit' => sub {
 				{ "message" => "Please specify a list of newline separated names" }
 			);			
 		}
-		
-		my $status = _submit( $cfg->{tempdir}, $fn );
-
 		my $uri  = "$cfg->{host}/retrieve/$fn";
 		my $date = localtime;
+		info "Request submitted\t$date\t", request->address(), "\t",request->user_agent();		
+		my $status = _submit( $cfg->{tempdir}, $fn );
 		my $json = {
 			"submit date" => $date,
 			token         => $fn,
@@ -160,7 +159,7 @@ get '/retrieve/:job_id' => sub {
 	elsif ( -f "$cfg->{tempdir}/.$job_id.lck" ) {
 		status 'found';
 		return encode_json(
-			{ "message" => "Job $job_id is still being processed." } );
+			{ "message" => "Job $job_id is still being processed. Please try refreshing in a few seconds." } );
 	}
 	else {
 		status 'not_found';

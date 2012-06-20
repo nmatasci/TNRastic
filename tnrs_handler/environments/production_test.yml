@@ -4,7 +4,8 @@
 log: "info"
 
 # log message to a file in logs/
-logger: "console"
+#logger: "console"
+logger: "file"
 
 # don't consider warnings critical
 warnings: 0

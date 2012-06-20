@@ -84,7 +84,7 @@
 			<li>Parameters:
 				<ul>
 					<li><params>&lt;source_id&gt</params>: the source id.</li>
-					<li><i>none</i> to return the details for of sources.</li>
+					<li><i>none</i> to return the details for all sources.</li>
 				</ul>
 				<li>Returns: a JSON object containing source(s) details.</li>
 				<li>Example: <a href="<% host %>/sources/NCBI"><% host
