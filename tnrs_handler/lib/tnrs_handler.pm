@@ -7,8 +7,6 @@ use Digest::MD5 qw(md5_hex);
 
 our $VERSION = '1.0.1';
 
-
-
 my $config_file_path = "handler_config.json";
 my $cfg              = init($config_file_path);
 
@@ -28,7 +26,7 @@ sub init {
 	close $CFG;
 	my $cfg_ref = decode_json( join '', @cfg );
 	my $host = $cfg_ref->{host};
-	$host=$cfg_ref->{port}?"$host:" . $cfg_ref->{port}:$host;
+	$host = $cfg_ref->{port} ? "$host:" . $cfg_ref->{port} : $host;
 	$cfg_ref->{host} = $host;
 
 	my $tempdir = $cfg_ref->{tempdir};
@@ -49,17 +47,14 @@ sub init {
 	return $cfg_ref;
 }
 
-
 #TODO: Move / to html in public
 #TODO: dynamic registry add
 #TODO: File support
-#TODO: Job cancel
+#DONE: Job cancel
 #DONE: Auto redirects
 #TODO: Date format (in tnrs_resolver)
 #TODO: Add cache
 #TODO: Add spellchecker
-
-
 
 #Information
 get '/' => sub {
@@ -96,30 +91,34 @@ any [ 'get', 'post' ] => '/status' => sub {
 #Submit
 #any [ 'post', 'get' ] => '/submit' => sub {
 get '/submit' => sub {
-	
+
 	my $para = request->params;
 
-	if ( !defined($para)  ) {
+	if ( !defined($para) ) {
 		status 'bad_request';
 		return encode_json(
 			{ "message" => "Please specify a list of newline separated names" }
 		);
 	}
-	elsif($para->{query}) {
+	elsif ( $para->{query} ) {
 		my $names = $para->{query};
-		my $fn = md5_hex( $names, time );
+		my $fn    = md5_hex( $names, time );
+		my $t     = localtime;
+		info "Request submitted\t$t\t", request->address(), "\t",
+		  request->user_agent();
+
 		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
 		print $TF $names;
 		close $TF;
-		my$t=localtime;
-		info "Request submitted\t$t ", request->address(),"\t",request->user_agent();
-		my $status = _submit("$tempdir/$fn.tmp");
-		my $uri    = "$host/retrieve/$fn";
-		my $date   = localtime;
-		my $json   = {
+
+		my $status = _submit( $tempdir, $fn );
+
+		my $uri  = "$host/retrieve/$fn";
+		my $date = localtime;
+		my $json = {
 			"submit date" => $date,
 			token         => $fn,
-			uri           => $uri, #"$host/retrieve/$fn",
+			uri           => $uri,
 			message       =>
 "Your request is being processed. You can retrieve the results at $uri."
 		};
@@ -133,35 +132,71 @@ get '/submit' => sub {
 #any [ 'post', 'get' ] => '/submit' => sub {
 #
 #	elsif ( defined($para->{file})  ){
-#	
-#		
-#		
+#
+#
+#
 #	}
 #}
 
 #Retrieve
 get '/retrieve/:job_id' => sub {
 	my $job_id = param('job_id');
-	my $wait=param('wait')?param('wait'):0;
+	my $wait = param('wait') ? param('wait') : 0;
 	if ( -f "$storage/$job_id.json" ) {
 		open( my $RF, "<$storage/$job_id.json" ) or _error_code("generic");
 		my @tmp = (<$RF>);
 		close($RF);
 		return join '', @tmp;    #is already JSON
 	}
-	elsif ( -f "$tempdir/$job_id.tmp" ) {
-
-			status 'found';	
-			return encode_json(
-			{ "message" => "Job $job_id is still being processed." } );	
-
-	#TODO: add test for freshness: if request is older then 24h, then return 404
-
+	elsif ( -f "$tempdir/.$job_id.lck" ) {
+		status 'found';
+		return encode_json(
+			{ "message" => "Job $job_id is still being processed." } );
 	}
 	else {
 		status 'not_found';
 		return encode_json(
 			{ "message" => "Error. Job $job_id doesn't exits." } );
+	}
+
+};
+
+#Canceling a running job
+any [ 'del', 'get', 'post' ] => '/delete/:job_id' => sub {
+	my $job_id = param('job_id');
+
+	#The job has completed
+	if ( -f "$storage/$job_id.json" ) {
+		status 'not_found';
+		return encode_json(
+			{
+				"message" =>
+"Error. Job $job_id has completed. You can retrieve the results at $host/retrieve/$job_id",
+				"uri" => "$host/retrieve/$job_id"
+			}
+		);
+
+	}
+
+	#The job has not completed, but there in no lock
+	elsif ( !-f "$tempdir/.$job_id.lck" ) {
+		status 'not_found';
+		return encode_json(
+			{ "message" => "Error. Job $job_id does not exits." } );
+
+	}
+
+	#The job can be canceled
+	else {
+		my $ok = _delete($job_id);
+		if ( !$ok ) {
+			_error_code("generic");
+		}
+		else {
+			status 'ok';
+			return encode_json(
+				{ "message" => "Job $job_id has been canceled." } );
+		}
 	}
 
 };
@@ -195,26 +230,51 @@ sub _error_code {
 
 }
 
-#Forks a process to interrogate the TNRSs 
+#Forks a process to interrogate the TNRSs
 sub _submit {
-	$SIG{CHLD} = "IGNORE"; #Avoids zombie processes
-	my $filename = shift;
-	fork and return; #Spawn a child process and returns to the http handler fuction 
-	
+	$SIG{CHLD} = "IGNORE";    #Avoids zombie processes
+	my ( $tmpdir, $filename ) = @_;
+	fork
+	  and return; #Spawn a child process and returns to the http handler fuction
+
 	#Following code run by the children
-	
-	my $pid = $$; #PID of the child process
+
+	my $pid = $$;    #PID of the child process
+
+	open( my $PIDF, ">$tempdir/.$filename.lck" )
+	  or die "Cannot open .$filename.lck: $!\n";
+	print $PIDF "$pid";
+	close $PIDF;
 
 	#	$n_pids++;
 	#	if ( $n_pids >= $MAX_PIDS ) {
 	#		sleep $n_pids * 10;
 	#	}
-	process($filename,$adapters_file,$storage);
-	  
-	#	$n_pids--;
-	
-	kill 9, $pid; #Process commit suicide
 
+	process( "$tempdir/$filename.tmp", $adapters_file, $storage );
+
+	unlink "$tempdir/.$filename.lck";
+
+	#	$n_pids--;
+
+	kill 9, $pid;    #Process commits suicide
+}
+
+sub _delete {
+	my $job_id = shift;
+	open( my $LOCK, "<$tempdir/.$job_id.lck" ) or return 0;
+	my $pid = <$LOCK>;
+	close $LOCK;
+
+	#kill the job
+	kill 9, $pid;
+
+	#remove the lock
+	unlink "$tempdir/.$job_id.lck";
+
+	#remove the name file
+	unlink "$tempdir/$job_id.tmp";
+	return 1;
 }
 
 true;
