@@ -47,9 +47,9 @@ sub init {
 	return $cfg_ref;
 }
 
-#TODO: Move / to html in public
-#TODO: dynamic registry add
-#TODO: File support
+#TODO: for v1.1 - Move / to html in public
+#TODO: for v1.1 - dynamic registry add
+#DONE: File support
 #DONE: Job cancel
 #DONE: Auto redirects
 #TODO: Date format (in tnrs_resolver)
@@ -89,8 +89,8 @@ any [ 'get', 'post' ] => '/status' => sub {
 };
 
 #Submit
-#any [ 'post', 'get' ] => '/submit' => sub {
-get '/submit' => sub {
+any [ 'post', 'get' ] => '/submit' => sub {
+#get '/submit' => sub {
 
 	my $para = request->params;
 
@@ -100,17 +100,24 @@ get '/submit' => sub {
 			{ "message" => "Please specify a list of newline separated names" }
 		);
 	}
-	elsif ( $para->{query} ) {
-		my $names = $para->{query};
-		my $fn    = md5_hex( $names, time );
-		my $t     = localtime;
-		info "Request submitted\t$t\t", request->address(), "\t",
-		  request->user_agent();
+	else  {
 
-		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
-		print $TF $names;
-		close $TF;
-
+		my$fn;
+		if($para->{query}){
+			$fn = _stage($para->{query});
+		}
+		elsif($para->{file}){
+			my$upload =request->uploads->{file};
+			$fn = md5_hex( $upload->content, time );
+			$upload->copy_to("$tempdir/$fn.tmp")
+		}
+		else{
+			status 'bad_request';
+			return encode_json(
+				{ "message" => "Please specify a list of newline separated names" }
+			);			
+		}
+		
 		my $status = _submit( $tempdir, $fn );
 
 		my $uri  = "$host/retrieve/$fn";
@@ -128,15 +135,6 @@ get '/submit' => sub {
 	}
 };
 
-#TODO: file support
-#any [ 'post', 'get' ] => '/submit' => sub {
-#
-#	elsif ( defined($para->{file})  ){
-#
-#
-#
-#	}
-#}
 
 #Retrieve
 get '/retrieve/:job_id' => sub {
@@ -203,24 +201,15 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id' => sub {
 
 #TODO: file support
 #stage
-#sub _stage {
-#		my $names = $para->{query};
-#		my $fn = md5_hex( $names, time );
-#		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
-#		print $TF $names;
-#		close $TF;
-#		my $status = _submit("$tempdir/$fn.tmp");
-#		my $uri    = "$host/$fn";
-#		my $date   = localtime;
-#		my $json   = {
-#			"submit date" => $date,
-#			token         => $fn,
-#			uri           => "$host/retrieve/$fn",
-#			message       =>
-#"Your request is being processed. You can retrieve the results at $host/retrieve/$fn."
-#		};
-#		return $json;
-#}
+sub _stage {
+		my $names = shift;
+		my $fn = md5_hex( $names, time );
+		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
+		print $TF $names;
+		close $TF;
+		return $fn;
+}
+
 
 #Error handling
 sub _error_code {
