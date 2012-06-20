@@ -13,7 +13,7 @@ our @VERSION = 1.0.1;
 
 sub process {
 	my $names_file    = shift;
-	my $adapters_file = shift;
+	my $ad_ref = shift;
 	my $target_dir    = shift;
 
 	#output name
@@ -23,8 +23,7 @@ sub process {
 	#date
 	my $sub_date = localtime;
 
-	#load adapters registry
-	my $ad_ref = load_adapters($adapters_file);
+
 	my ($res,$fail) = query_sources( $names_file, $ad_ref );
 	$res = merge($res);
 	write_output( $res, "$target_dir/$jobId.json", $jobId, $sub_date, $ad_ref,$fail );
@@ -158,14 +157,6 @@ sub _extract_meta {
 	return \@meta
 }
 
-sub load_adapters {
-	my $adapters_file = shift;
-	open( my $ADA, "<$adapters_file" )
-	  or die "Cannot load adapter configuration file $adapters_file: $!";
-	my @adapters = (<$ADA>);
-	close $ADA;
-	my $adapters_ref = decode_json( join '', @adapters );
-	return $adapters_ref;
-}
+
 
 1;

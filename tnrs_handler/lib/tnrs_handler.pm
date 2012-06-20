@@ -10,11 +10,6 @@ our $VERSION = '1.0.1';
 my $config_file_path = "handler_config.json";
 my $cfg              = init($config_file_path);
 
-my $adapters_file = $cfg->{adapters_file};
-my $host          = $cfg->{host};
-my $storage       = $cfg->{storage};
-my $tempdir       = $cfg->{tempdir};
-my $MAX_PIDS      = $cfg->{MAX_PIDS};        #not currently used
 
 my $n_pids = 0;
 
@@ -28,6 +23,9 @@ sub init {
 	my $host = $cfg_ref->{host};
 	$host = $cfg_ref->{port} ? "$host:" . $cfg_ref->{port} : $host;
 	$cfg_ref->{host} = $host;
+	
+	#load adapters registry
+	$cfg_ref->{adapters} = _load_adapters($cfg_ref->{adapters_file});
 
 	my $tempdir = $cfg_ref->{tempdir};
 
@@ -48,7 +46,7 @@ sub init {
 }
 
 #TODO: for v1.1 - Move / to html in public
-#TODO: for v1.1 - dynamic registry add
+#DONE: for v1.1 - dynamic registry add
 #DONE: File support
 #DONE: Job cancel
 #DONE: Auto redirects
@@ -69,12 +67,12 @@ Usage:
 	Parameters: 
 		-query:	newline separated list of scientific names
 	Returns: JSON object containing a token to access the results.
-	Example: $host/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert
+	Example: $cfg->{host}/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert
 
 /retrieve/<token>
 	GET the result of a TNRastic query.
 	Returns: JSON object containing the accepted names.
-	Example: $host/retrieve/b6356e63f0c39d58066c1e772e24ff6f	
+	Example: $cfg->{host}/retrieve/b6356e63f0c39d58066c1e772e24ff6f	
 	
 		
 To learn more, please visit http://www.evoio.org/wiki/Phylotastic/TNRS.
@@ -86,6 +84,41 @@ To learn more, please visit http://www.evoio.org/wiki/Phylotastic/TNRS.
 #Status
 any [ 'get', 'post' ] => '/status' => sub {
 	return encode_json( { "status" => "OK" } );
+};
+
+#Sources
+get '/sources/list' => sub{
+	my@sources;
+	foreach ( @{ $cfg->{adapters}->{adapters} } ) {
+		$sources[$_->{rank}] = $_->{sourceId};
+		
+	}
+	@sources=grep { defined } @sources;
+	return encode_json( {"sources" => \@sources} );
+};
+
+get '/sources/:sourceId?' => sub{
+	my$sourceId=param('sourceId');
+	if(! $sourceId){
+		return encode_json($cfg->{adapters}->{adapters});		
+	}	
+	my@sources=@{ $cfg->{adapters}->{adapters} };
+	for(@sources){
+		if ($_->{sourceId} eq $sourceId){
+			return encode_json($_);	
+		}
+	}
+	return _error_code('generic');
+};
+
+get '/admin/reload_sources' => sub{
+		my$key=param('key');
+		if (_valid($key)){
+			$cfg->{adapters} = _load_adapters($cfg->{adapters_file});	
+		}
+		my$resp=$cfg->{adapters};
+		$resp->{'message'}="File $cfg->{adapters_file} has been successfully reloaded.";
+		return encode_json($resp);
 };
 
 #Submit
@@ -109,7 +142,7 @@ any [ 'post', 'get' ] => '/submit' => sub {
 		elsif($para->{file}){
 			my$upload =request->uploads->{file};
 			$fn = md5_hex( $upload->content, time );
-			$upload->copy_to("$tempdir/$fn.tmp")
+			$upload->copy_to("$cfg->{tempdir}/$fn.tmp")
 		}
 		else{
 			status 'bad_request';
@@ -118,9 +151,9 @@ any [ 'post', 'get' ] => '/submit' => sub {
 			);			
 		}
 		
-		my $status = _submit( $tempdir, $fn );
+		my $status = _submit( $cfg->{tempdir}, $fn );
 
-		my $uri  = "$host/retrieve/$fn";
+		my $uri  = "$cfg->{host}/retrieve/$fn";
 		my $date = localtime;
 		my $json = {
 			"submit date" => $date,
@@ -140,13 +173,13 @@ any [ 'post', 'get' ] => '/submit' => sub {
 get '/retrieve/:job_id' => sub {
 	my $job_id = param('job_id');
 	my $wait = param('wait') ? param('wait') : 0;
-	if ( -f "$storage/$job_id.json" ) {
-		open( my $RF, "<$storage/$job_id.json" ) or _error_code("generic");
+	if ( -f "$cfg->{storage}/$job_id.json" ) {
+		open( my $RF, "<$cfg->{storage}/$job_id.json" ) or _error_code("generic");
 		my @tmp = (<$RF>);
 		close($RF);
 		return join '', @tmp;    #is already JSON
 	}
-	elsif ( -f "$tempdir/.$job_id.lck" ) {
+	elsif ( -f "$cfg->{tempdir}/.$job_id.lck" ) {
 		status 'found';
 		return encode_json(
 			{ "message" => "Job $job_id is still being processed." } );
@@ -164,20 +197,20 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id' => sub {
 	my $job_id = param('job_id');
 
 	#The job has completed
-	if ( -f "$storage/$job_id.json" ) {
+	if ( -f "$cfg->{storage}/$job_id.json" ) {
 		status 'not_found';
 		return encode_json(
 			{
 				"message" =>
-"Error. Job $job_id has completed. You can retrieve the results at $host/retrieve/$job_id",
-				"uri" => "$host/retrieve/$job_id"
+"Error. Job $job_id has completed. You can retrieve the results at $cfg->{host}/retrieve/$job_id",
+				"uri" => "$cfg->{host}/retrieve/$job_id"
 			}
 		);
 
 	}
 
 	#The job has not completed, but there in no lock
-	elsif ( !-f "$tempdir/.$job_id.lck" ) {
+	elsif ( !-f "$cfg->{tempdir}/.$job_id.lck" ) {
 		status 'not_found';
 		return encode_json(
 			{ "message" => "Error. Job $job_id does not exits." } );
@@ -204,7 +237,7 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id' => sub {
 sub _stage {
 		my $names = shift;
 		my $fn = md5_hex( $names, time );
-		open( my $TF, ">$tempdir/$fn.tmp" ) or _error_code('generic');
+		open( my $TF, ">$cfg->{tempdir}/$fn.tmp" ) or _error_code('generic');
 		print $TF $names;
 		close $TF;
 		return $fn;
@@ -230,19 +263,19 @@ sub _submit {
 
 	my $pid = $$;    #PID of the child process
 
-	open( my $PIDF, ">$tempdir/.$filename.lck" )
+	open( my $PIDF, ">$cfg->{tempdir}/.$filename.lck" )
 	  or die "Cannot open .$filename.lck: $!\n";
 	print $PIDF "$pid";
 	close $PIDF;
 
 	#	$n_pids++;
-	#	if ( $n_pids >= $MAX_PIDS ) {
+	#	if ( $n_pids >= $cfg->{MAX_PIDS} ) {
 	#		sleep $n_pids * 10;
 	#	}
 
-	process( "$tempdir/$filename.tmp", $adapters_file, $storage );
+	process( "$cfg->{tempdir}/$filename.tmp", $cfg->{adapters}, $cfg->{storage} );
 
-	unlink "$tempdir/.$filename.lck";
+	unlink "$cfg->{tempdir}/.$filename.lck";
 
 	#	$n_pids--;
 
@@ -251,7 +284,7 @@ sub _submit {
 
 sub _delete {
 	my $job_id = shift;
-	open( my $LOCK, "<$tempdir/.$job_id.lck" ) or return 0;
+	open( my $LOCK, "<$cfg->{tempdir}/.$job_id.lck" ) or return 0;
 	my $pid = <$LOCK>;
 	close $LOCK;
 
@@ -259,11 +292,25 @@ sub _delete {
 	kill 9, $pid;
 
 	#remove the lock
-	unlink "$tempdir/.$job_id.lck";
+	unlink "$cfg->{tempdir}/.$job_id.lck";
 
 	#remove the name file
-	unlink "$tempdir/$job_id.tmp";
+	unlink "$cfg->{tempdir}/$job_id.tmp";
 	return 1;
+}
+
+sub _load_adapters {
+	my $adapters_file = shift;
+	open( my $ADA, "<$adapters_file" )
+	  or die "Cannot load adapter configuration file $adapters_file: $!";
+	my @adapters = (<$ADA>);
+	close $ADA;
+	my $adapters_ref = decode_json( join '', @adapters );
+	return $adapters_ref;
+}
+
+sub _valid {
+	return 1;	
 }
 
 true;

@@ -17,7 +17,8 @@ WriteMakefile(
         'Dancer'     => 1.3095,
         'Parallel::ForkManager' => 0,
         'Digest::MD5' => 0,
-        'JSON' => 0
+        'JSON' => 0,
+	'File::ShareDir' =>0
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'tnrs_handler-*' },

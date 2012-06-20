@@ -1,6 +1,8 @@
 MANIFEST
 bin/app.pl
 config.yml
+handler_config.json
+handler_config.json.example
 environments/development.yml
 environments/production.yml
 views/index.tt
