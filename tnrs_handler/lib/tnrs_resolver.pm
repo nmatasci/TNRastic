@@ -6,7 +6,7 @@ use Exporter;
 our @ISA=qw(Exporter);
 our @EXPORT=qw(process);
 
-our @VERSION = 1.0.1;
+our @VERSION = 1.0.2;
 
 #process(@ARGV);
 #exit 0;
@@ -137,7 +137,6 @@ sub write_output {
 	return 0;
 }
 
-#TODO: Extract metadata from the sources
 sub _extract_meta {
 	my $sources=shift;
 	my $fails=shift;

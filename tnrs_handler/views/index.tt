@@ -1,148 +1,122 @@
-  
-<!-- 
-    Credit goes to the Ruby on Rails team for this page 
-    has been heavily based on the default Rails page that is 
-    built with a scaffolded application.
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<title>Welcome to TNRastic</title>
+<meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+	<img src="images/Phylotastic_logo.png" width="500px"/><h1>TNRastic - the Phylotastic Taxonomic Name Resolution Service.</h1>
+	<p>Submit a list of scientific names to obtain the accepted name
+		across various taxonomic sources. Fore more information, please visit <a
+			href="http://www.evoio.org/wiki/Phylotastic/TNRS">http://www.evoio.org/wiki/Phylotastic/TNRS</a>.</p>
 
-    Thanks a lot to them for their work.
+	<div id="service"> <endpoint>/submit</endpoint>
+	<p>
+		<method>POST</method>
+		a list of scientific names to the service and retrieve a token.
+		<ul>
+			<li>Parameters:</li>
+			<ul>
+				<li><params>query</params>: newline separated list of scientific
+					names. <em>OR</em></li>
+				<li><params>file</params>: a text file containing newline
+					separated scientific names</li>
+			</ul>
+			<li>Returns: a JSON object containing a token to access the
+				results.</li>
+			<li>Example: <a
+				href="<% host %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert"><%
+					host
+					%>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert</a></li>
+		</ul>
+		<method>GET</method>
+		a list of scientific names to the service and retrieve a token.
+		<ul>
+			<li>Parameters:</li>
+			<ul>
+				<li><params>query</params>: newline separated list of scientific
+					names.</li>
+			</ul>
+			<li>Returns: a JSON object containing a token to access the
+				results.</li>
+			<li>Example: <a
+				href="<% host %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert"><%
+					host
+					%>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert</a></li>
+		</ul>
+	</p>
+	</div>
+	<div id="service"> <endpoint>/retrieve/&lt;token&gt;</endpoint>
+	<p>
+		<method>GET</method>
+		the result of a TNRastic query.
+		<ul>
+			<li>Parameters: <i>none</i></li>
+			<li>Returns: a JSON object containing the accepted names.</li>
+			<li>Example: <a
+				href="<% host %>/retrieve/7381e6dddcb06a7865c56b5dfd40cf05"><%
+					host %>/retrieve/7381e6dddcb06a7865c56b5dfd40cf05</a></li>
+		</ul>
+	</p>
+	</div>
 
-    See Ruby on Rails if you want a kickass framework in Ruby:
-    http://www.rubyonrails.org/
--->
+	<div id="service"> <endpoint>/sources/list</endpoint>
+	<p>
+		<method>GET</method>
+		a ranked list the ids of all available sources.
+		<ul>
+			<li>Parameters: <i>none</i></li>
+			<li>Returns: a JSON object containing the list of source_id.</li>
+			<li>Example: <a href="<% host %>/sources/list"><% host
+					%>/sources/list</a></li>
+		</ul>
+	</p>
+	</div>
 
-<div id="page">
-      <div id="sidebar">
-        <ul id="sidebar-items">
-          <li>
-            <h3>Join the community</h3>
-            <ul class="links">
-
-              <li><a href="http://perldancer.org/">PerlDancer</a></li>
-              <li><a href="http://twitter.com/PerlDancer/">Official Twitter</a></li>
-              <li><a href="http://github.com/sukria/Dancer/">GitHub Community</a></li>
-            </ul>
-          </li>
-          
-          <li>
-            <h3>Browse the documentation</h3>
-
-            <ul class="links">
-              <li><a
-              href="http://search.cpan.org/dist/Dancer/lib/Dancer/Introduction.pod">Introduction</a></li>
-              <li><a href="http://search.cpan.org/dist/Dancer/lib/Dancer/Cookbook.pod">Cookbook</a></li>
-              <li><a href="http://search.cpan.org/dist/Dancer/lib/Dancer/Deployment.pod">Deployment Guide</a></li>
-              <li><a
-              href="http://search.cpan.org/dist/Dancer/lib/Dancer/Tutorial.pod"
-              title="a tutorial to build a small blog engine with Dancer">Tutorial</a></li>
-            </ul>
-          </li>
-
-          <li>
-            <h3>Your application's environment</h3>
-
-            <ul>
-                <li>Location: <code>/home/nmatasci/TNRastic/tnrs_handler</code></li>
-                <li>Template engine: <code><% settings.template %></code></li>
-                <li>Logger: <code><% settings.logger %></code></li>
-                <li>Environment: <code><% settings.environment %></code></li>
-            </ul>
-
-          </li>
-        </ul>
-
-      </div>
-
-      <div id="content">
-        <div id="header">
-          <h1>Perl is dancing</h1>
-          <h2>You&rsquo;ve joined the dance floor!</h2>
-        </div>
-
-        <div id="getting-started">
-          <h1>Getting started</h1>
-          <h2>Here&rsquo;s how to get dancing:</h2>
-                    
-          <h3><a href="#" id="about_env_link">About your application's environment</a></h3>
-
-          <div id="about-content" style="display: none;">
-            <table>
-                <tbody>
-                <tr>
-                    <td>Perl version</td>
-                    <td><tt><% perl_version %></tt></td>
-                </tr>
-                <tr>
-                    <td>Dancer version</td>
-                    <td><tt><% dancer_version %></tt></td>
-                </tr>
-                <tr>
-                    <td>Backend</td>
-                    <td><tt><% settings.apphandler %></tt></td>
-                </tr>
-                <tr>
-                    <td>Appdir</td>
-                    <td><tt>/home/nmatasci/TNRastic/tnrs_handler</tt></td>
-                </tr>
-                <tr>
-                    <td>Template engine</td>
-                    <td><tt><% settings.template %></tt></td>
-                </tr>
-                <tr>
-                    <td>Logger engine</td>
-                    <td><tt><% settings.logger %></tt></td>
-                </tr>
-                <tr>
-                    <td>Running environment</td>
-                    <td><tt><% settings.environment %></tt></td>
-                </tr>
-                </tbody>
-            </table>
-          </div>
-
-    <script type="text/javascript">
-    $('#about_env_link').click(function() {
-        $('#about-content').slideToggle('fast', function() {
-            // ok
-        });
-        return( false );
-    });
-    </script>
+	<div id="service"> <endpoint>/sources/&lt;source_id&gt;</endpoint>
+	<p>
+		<method>GET</method>
+		the details about a particular source. If source_id is omitted, the
+		details are returned for all available sources.
+		<ul>
+			<li>Parameters:
+				<ul>
+					<li><params>&lt;source_id&gt</params>: the source id.</li>
+					<li><i>none</i> to return the details for of sources.</li>
+				</ul>
+				<li>Returns: a JSON object containing source(s) details.</li>
+				<li>Example: <a href="<% host %>/sources/NCBI"><% host
+						%>/sources/NCBI</a></li>
+		</ul>
+	</p>
+	</div>
 
 
-          <ol>          
-            <li>
-              <h2>Tune your application</h2>
+	<div id="service"> <endpoint>/delete/&lt;token&gt;</endpoint>
+	<p>
+		<method>GET</method>
+		<i>or</i>
+		<method>POST</method>
+		<i>or</i>
+		<method>DELETE</method>
+		. Cancels a running job
+		<ul>
+			<li>Parameters:
+				<ul>
+					<li><params>&lt;token&gt</params>: the token returned by the
+						/submit request.</li>
+				</ul>
+			</li>
+			<li>Returns: a JSON object indicating success or an error
+				message.</li>
+			<li>Example: <a
+				href="<% host %>/delete/b6356e63f0c39d58066c1e772e24ff6f"><%
+					host %>/delete/b6356e63f0c39d58066c1e772e24ff6f</a></li>
+		</ul>
+	</p>
+	</div>
 
-              <p>
-              Your application is configured via a global configuration file,
-              <tt>config.yml</tt> and an "environment" configuration file,
-              <tt>environments/development.yml</tt>. Edit those files if you
-              want to change the settings of your application.
-              </p>
-            </li>
-
-            <li>
-              <h2>Add your own routes</h2>
-
-              <p>
-              The default route that displays this page can be removed,
-              it's just here to help you get started. The template used to
-              generate this content is located in 
-              <code>views/index.tt</code>.
-              You can add some routes to <tt>lib/tnrs_handler.pm</tt>. 
-              </p>
-            </li>
-
-            <li>
-                <h2>Enjoy web development again</h2>
-
-                <p>
-                Once you've made your changes, restart your standalone server
-                (bin/app.pl) and you're ready to test your web application.
-                </p>
-            </li>
-
-          </ol>
-        </div>
-      </div>
-    </div>
+</body>
+</html>

@@ -5,7 +5,7 @@ use Parallel::ForkManager;
 use JSON;
 use Digest::MD5 qw(md5_hex);
 
-our $VERSION = '1.0.1';
+our $VERSION = '1.1.0';
 
 my $config_file_path = "handler_config.json";
 my $cfg              = init($config_file_path);
@@ -45,7 +45,7 @@ sub init {
 	return $cfg_ref;
 }
 
-#TODO: for v1.1 - Move / to html in public
+#DONE: for v1.1 - Move / to html in public
 #DONE: for v1.1 - dynamic registry add
 #DONE: File support
 #DONE: Job cancel
@@ -56,29 +56,8 @@ sub init {
 
 #Information
 get '/' => sub {
-	my $message = qq{
-Welcome to TNRastic, the Phylotastic Taxonomic Name Resolution Service.
+	  template 'index' => { host => $cfg->{host} };
 
-Submit a list of scientific names to obtain the accepted name across various taxonomic sources.
-
-Usage:
-/submit
-	POST a list of scientific names to the service and retrieve a token.
-	Parameters: 
-		-query:	newline separated list of scientific names
-	Returns: JSON object containing a token to access the results.
-	Example: $cfg->{host}/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert
-
-/retrieve/<token>
-	GET the result of a TNRastic query.
-	Returns: JSON object containing the accepted names.
-	Example: $cfg->{host}/retrieve/b6356e63f0c39d58066c1e772e24ff6f	
-	
-		
-To learn more, please visit http://www.evoio.org/wiki/Phylotastic/TNRS.
-			
-	};
-	return $message;
 };
 
 #Status
@@ -123,7 +102,6 @@ get '/admin/reload_sources' => sub{
 
 #Submit
 any [ 'post', 'get' ] => '/submit' => sub {
-#get '/submit' => sub {
 
 	my $para = request->params;
 
@@ -232,7 +210,6 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id' => sub {
 
 };
 
-#TODO: file support
 #stage
 sub _stage {
 		my $names = shift;
