@@ -4,8 +4,7 @@ use Dancer ':syntax';
 use Parallel::ForkManager;
 use JSON;
 use Digest::MD5 qw(md5_hex);
-
-our $VERSION = '1.1.1';
+our $VERSION = '1.2.0';
 
 my $config_file_path = "handler_config.json";
 my $cfg              = init($config_file_path);
@@ -25,8 +24,9 @@ sub init {
 	$cfg_ref->{host} = $host;
 	
 	#load adapters registry
-	$cfg_ref->{adapters} = _load_adapters($cfg_ref->{adapters_file});
-
+	$cfg_ref->{modules} = _load_adapters($cfg_ref->{adapters_file});
+	$cfg_ref->{modules}->{spellers} = _load_adapters($cfg_ref->{spellers_file})->{spellers};
+	 
 	my $tempdir = $cfg_ref->{tempdir};
 
 	#Creates the tempdir
@@ -45,18 +45,14 @@ sub init {
 	return $cfg_ref;
 }
 
-#DONE: for v1.1 - Move / to html in public
-#DONE: for v1.1 - dynamic registry add
-#DONE: File support
-#DONE: Job cancel
-#DONE: Auto redirects
+
 #TODO: Date format (in tnrs_resolver)
 #TODO: Add cache
-#TODO: Add spellchecker
+#DONE: Add spellchecker
 
 #Information
 get '/' => sub {
-	  template 'index' => { host => $cfg->{host} };
+	  template 'index' => { host => $cfg->{host}, version => $VERSION };
 
 };
 
@@ -68,7 +64,7 @@ any [ 'get', 'post' ] => '/status' => sub {
 #Sources
 get '/sources/list' => sub{
 	my@sources;
-	foreach ( @{ $cfg->{adapters}->{adapters} } ) {
+	foreach ( @{ $cfg->{modules}->{adapters} } ) {
 		$sources[$_->{rank}] = $_->{sourceId};
 		
 	}
@@ -79,9 +75,9 @@ get '/sources/list' => sub{
 get '/sources/:sourceId?' => sub{
 	my$sourceId=param('sourceId');
 	if(! $sourceId){
-		return encode_json($cfg->{adapters}->{adapters});		
+		return encode_json($cfg->{modules}->{adapters});		
 	}	
-	my@sources=@{ $cfg->{adapters}->{adapters} };
+	my@sources=@{ $cfg->{modules}->{adapters} };
 	for(@sources){
 		if ($_->{sourceId} eq $sourceId){
 			return encode_json($_);	
@@ -93,7 +89,7 @@ get '/sources/:sourceId?' => sub{
 get '/admin/reload_sources' => sub{
 		my$key=param('key');
 		if (_valid($key)){
-			$cfg->{adapters} = _load_adapters($cfg->{adapters_file});	
+			$cfg->{modules} = _load_adapters($cfg->{adapters_file});	
 		}
 		my$resp=$cfg->{adapters};
 		$resp->{'message'}="File $cfg->{adapters_file} has been successfully reloaded.";
@@ -134,6 +130,7 @@ any [ 'post', 'get' ] => '/submit' => sub {
 		my $status = _submit( $cfg->{tempdir}, $fn );
 		my $json = {
 			"submit date" => $date,
+			version => $VERSION,
 			token         => $fn,
 			uri           => $uri,
 			message       =>
@@ -249,7 +246,7 @@ sub _submit {
 	#		sleep $n_pids * 10;
 	#	}
 
-	process( "$cfg->{tempdir}/$filename.tmp", $cfg->{adapters}, $cfg->{storage} );
+	process( "$cfg->{tempdir}/$filename.tmp", $cfg->{modules}, $cfg->{storage} );
 
 	unlink "$cfg->{tempdir}/.$filename.lck";
 

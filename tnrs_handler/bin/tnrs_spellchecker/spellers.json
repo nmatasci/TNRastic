@@ -1,5 +1,5 @@
 {
-    "speller": [
+    "spellers": [
         {
             "sourceId": 1,
             "name": "NCBI",
@@ -8,7 +8,7 @@
             "publication": "http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2578899/",
             "annotations": {},
             "rank": 1,
-            "call": "pythpon2.6 ncbi_speller.py"
+            "call": "python2.6 tnrs_spellchecker/ncbi_spell.py"
         }
     ]
 
