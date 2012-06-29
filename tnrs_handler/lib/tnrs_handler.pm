@@ -56,6 +56,9 @@ get '/' => sub {
 
 };
 
+get '/wait' =>sub{
+	sleep 10;
+};
 #Status
 any [ 'get', 'post' ] => '/status' => sub {
 	return encode_json( { "status" => "OK" } );
