@@ -10,7 +10,7 @@
 
 import urllib
 import time
-import sys
+import sys, traceback
 import os
 import subprocess as sub
 import json
@@ -30,22 +30,30 @@ HTML_ERROR = "HTML error in accessing NCBI"
 def search_file_for_matches(search_term):
 
     # Search the CSV for a given indexed term
-    p = sub.Popen(['grep','<i>%s </i>' %search_term ,MSV3_CSV_FILE],stdout=sub.PIPE,stderr=sub.PIPE)
+    p = sub.Popen(['grep','-E','<i>%s *</i>' %search_term ,MSV3_CSV_FILE],stdout=sub.PIPE,stderr=sub.PIPE)
     output, errors = p.communicate()
     if errors is not None and errors != "":
             raise Exception ("Error grepping: %s" %str(errors))
 
     # Read results as a CSV file
     rcsv = csv.reader(StringIO.StringIO(output),  delimiter=',', quotechar='"')
+
+    # Look only at SPECIES results
     res = [ (row[0],row[34]) for row in rcsv if row[12] == "SPECIES" ]
-    #print "res is " + str(res)
+    
+    # Multiple Matches found?
     if len(res) > 1:
+        # Look for exact matches
 	res_exact = [r for r in res if get_name_for_match(r) == search_term]
-        if len(res_exact) > 1:
-            raise Exception ("Multiple results found for %s (%d): \n %s" %(search_term,len(res),str(res)))
+        # if only one exact match results, just use that one
+	if len(res_exact) == 1:
+            return res_exact[0]
+        # Still confused? don't translate this one
         else:
-            res = res_exact
-    elif len(res) == 0:
+            return None
+	    print >>sys.stderr, "Multiple matches found for %s. Returning none." %search_term
+    elif len(res) == 0: # Nothing found :(
+        #TODO: try searching for the species name and the genus separately. 
         return None
     return res[0]
 
@@ -53,10 +61,9 @@ def search_file_for_matches(search_term):
 def get_ID_for_match(match):
     return match[0]
 
-''' For a given list of ids this function returns the accepted names. 
-Results are returned as a dictionary'''
+''' For a given match this funtion returns the name'''
 def get_name_for_match(match):
-    return match[1][3:-5]
+    return match[1][3:-4].strip()#strip off the <i> </i> part
 
 if __name__ == '__main__':    
     jres={}
@@ -67,7 +74,9 @@ if __name__ == '__main__':
             term = t.replace("\n","").replace("_"," ")
             m = search_file_for_matches(term) # First search the name to find the IDs
             if m is not None:
-                res[term] = ("%s/?id=%s" %(TAXON_URL_BASE,get_ID_for_match (m)), get_name_for_match(m)) # Build URL from IDs
+                res[term] = ("%s?id=%s" %(TAXON_URL_BASE,get_ID_for_match (m)), get_name_for_match(m)) # Build URL from IDs
+            else:
+                print >>sys.stderr, "Nothing found for %s" %term
         
         jres["status"] = "200"
         jres["errorMessage"] = ""
@@ -85,5 +94,6 @@ if __name__ == '__main__':
         jres["status"] = "500"
         jres["errorMessage"] = str(e)
         jres["names"] = []
+	traceback.print_exc(file=sys.stderr)
         
     print json.dumps(jres)
