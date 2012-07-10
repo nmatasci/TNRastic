@@ -29,16 +29,22 @@ HTML_ERROR = "HTML error in accessing NCBI"
 '''Search for a given name and find its taxonomic ID.'''
 def search_file_for_matches(search_term):
 
-    # Search taxonomy for a given term.
+    # Search the CSV for a given indexed term
     p = sub.Popen(['grep','<i>%s </i>' %search_term ,MSV3_CSV_FILE],stdout=sub.PIPE,stderr=sub.PIPE)
     output, errors = p.communicate()
     if errors is not None and errors != "":
             raise Exception ("Error grepping: %s" %str(errors))
+
+    # Read results as a CSV file
     rcsv = csv.reader(StringIO.StringIO(output),  delimiter=',', quotechar='"')
     res = [ (row[0],row[34]) for row in rcsv if row[12] == "SPECIES" ]
     #print "res is " + str(res)
     if len(res) > 1:
-        raise Exception ("Multiple results found:\n %s" %len(res))
+	res_exact = [r for r in res if get_name_for_match(r) == search_term]
+        if len(res_exact) > 1:
+            raise Exception ("Multiple results found for %s (%d): \n %s" %(search_term,len(res),str(res)))
+        else:
+            res = res_exact
     elif len(res) == 0:
         return None
     return res[0]
@@ -58,7 +64,7 @@ if __name__ == '__main__':
     id2term = {}
     try:
         for t in sys.stdin:
-            term = t.replace("\n","")
+            term = t.replace("\n","").replace("_"," ")
             m = search_file_for_matches(term) # First search the name to find the IDs
             if m is not None:
                 res[term] = ("%s/?id=%s" %(TAXON_URL_BASE,get_ID_for_match (m)), get_name_for_match(m)) # Build URL from IDs
@@ -79,6 +85,5 @@ if __name__ == '__main__':
         jres["status"] = "500"
         jres["errorMessage"] = str(e)
         jres["names"] = []
-	raise e
         
     print json.dumps(jres)
