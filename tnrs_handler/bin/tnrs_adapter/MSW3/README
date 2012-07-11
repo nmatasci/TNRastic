@@ -17,9 +17,10 @@ Heuristics used are the following, in that order.
 1- Try finding the exact match in the last column (i.e. Genus species).
 2- Try finding the exact match anywhere in the record
 3- If the input has two parts, treat the first part as genus name and second part as the species name. 
+   Alternatively, if input has three parts, discard third part, and tread first and second parts as above. 
    3.1. Try finding a record that has the species name, and the genus names separately in some indexed column, and has at least one of them in the last column
    3.2. Try finding a record that has the species name, and the genus names separately in some indexed column
 
 These heuristics are tried in that order. If any of them returns only one record, that record is used. Else, the next heuristic is used.
 
-A -v parameter turs on verbose outputs to the standard error 
+A -v parameter turns on verbose outputs to the standard error 
