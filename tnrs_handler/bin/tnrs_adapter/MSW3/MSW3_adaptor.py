@@ -17,6 +17,9 @@ import json
 import csv
 import StringIO
 
+''' set the following to True to get verbose message on standard err'''
+Verbose = True
+
 TAXON_URL_BASE="http://www.bucknell.edu/msw3/browse.asp"
 
 MSV3_CSV_FILE = os.path.join(sys.path[0],"MSW3_PARSED.csv")
@@ -42,31 +45,40 @@ def grep_and_filter(search_term, filter="SPECIES"):
 '''Search for a given name and find its taxonomic ID.'''
 def search_file_for_matches(search_term):
 
+    if Verbose:
+        print >>sys.stderr, "---- Search for %s ----" %search_term
+
     # grep the file for the search term, and look only at SPECIES results
     res = grep_and_filter(search_term)
-    
     # Multiple Matches found? Look for exact matches and just use those
     res = [r for r in res if get_name_for_match(r) == search_term] if len(res) > 1 else res
 
     # Still more than one results found? don't translate this one
     if len(res) > 1:
-        print >>sys.stderr, "Multiple matches found for %s. Returning none." %search_term
+        if Verbose:
+        	print >>sys.stderr, "Multiple matches found for %s. Returning none. \n %s" %(search_term,str(res))
         return None
     elif len(res) == 0: # Nothing found :(
         # try searching for the species name and the genus separately.
         nameparts = search_term.split(" ")
         # Can do this only with two part names (TODO: handle more complex names)
         if len(nameparts) == 2:
+            if Verbose:
+            	print >>sys.stderr, "No exact matches found for %s. Trying loose matches. " %(search_term)
             # grep the file for the species name part, and look only at SPECIES results
             res = grep_and_filter(nameparts[1])
-            # Multiple Matches found? Look for exact matches and just use those.
-            res = [r for r in res if get_name_for_match(r) == search_term] if len(res) > 1 else res  
             # Find only those that have the genus part in any of the fields
             res = [r for r in res if r[2].find("<i>%s"%nameparts[0]) != -1]
+            # If multiple matches  found, find those that have the exact species or genus part
+            res = [r for r in res if get_name_for_match(r).split()[0] == nameparts[0] or get_name_for_match(r).split()[1] == nameparts[1]] if len (res) > 1 else res
+            if Verbose and len (res) > 1:
+            	print >>sys.stderr, "Multiple loose matches found for %s. Returning none. \n %s " %(search_term,str(res))
             # IF this results in one and only one results, use that. 
             if len(res) == 1:
                  return res[0]
         return None
+    if Verbose:
+        print >>sys.stderr, " One exact match found for %s: %s" %(search_term,str(res[0]))
     return res[0]
 
 ''' For a given match this function returns the ID'''
@@ -87,8 +99,11 @@ if __name__ == '__main__':
             m = search_file_for_matches(term) # First search the name to find the IDs
             if m is not None:
                 res[term] = ("%s?id=%s" %(TAXON_URL_BASE,get_ID_for_match (m)), get_name_for_match(m)) # Build URL from IDs
+                if Verbose and res[term][1] != term:
+                    print >>sys.stderr, "Mapping %s to %s " %(term, res[term][1])
             else:
-                print >>sys.stderr, "Could not match %s" %term
+                if Verbose:
+                    print >>sys.stderr, "Could not match %s" %term
         
         jres["status"] = "200"
         jres["errorMessage"] = ""
