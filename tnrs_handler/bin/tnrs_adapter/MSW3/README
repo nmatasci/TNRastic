@@ -1,0 +1,13 @@
+MSW3.csv
+--------------------------------
+The raw CSV dataset downloaded from http://www.bucknell.edu/msw3/. This is assumed to be in latin_1 encoding. 
+
+util_parse_csv.py
+--------------------------------
+reads the MSW3.csv file (which is the raw database downloaded from MSW3) website, and preapres a new csv file (called MSW3_PARSED.csv") that can be used in our adaptor script. Currently, this parser does the following:
+1- Encodes everything from Latin_1 to UTF-8. This is important!
+2- Adds a column at the end that has "Genus species". This is our naive attempt at building the bionomial from the taxonomy. 
+
+MSW3_adaptor.py
+--------------------------------
+The adaptor file that searches for matches inside MSW3. It uses some heuristics to get to one and only one match for each search term. If it fails to do so, it skips that particualr search term.
