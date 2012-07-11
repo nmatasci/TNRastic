@@ -18,7 +18,9 @@ import csv
 import StringIO
 
 ''' set the following to True to get verbose message on standard err'''
-Verbose = True
+Verbose = False
+if len(sys.argv) > 1 and sys.argv[1] == "-v":
+    Verbose = True
 
 TAXON_URL_BASE="http://www.bucknell.edu/msw3/browse.asp"
 

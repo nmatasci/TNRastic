@@ -20,4 +20,6 @@ Heuristics used are the following, in that order.
    3.1. Try finding a record that has the species name, and the genus names separately in some indexed column, and has at least one of them in the last column
    3.2. Try finding a record that has the species name, and the genus names separately in some indexed column
 
-These heuristics are tried in that order. If any of them returns only one record, that record is used. Else, the next heuristic is used. 
+These heuristics are tried in that order. If any of them returns only one record, that record is used. Else, the next heuristic is used.
+
+A -v parameter turs on verbose outputs to the standard error 
