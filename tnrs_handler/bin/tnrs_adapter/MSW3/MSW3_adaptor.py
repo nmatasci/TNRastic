@@ -50,6 +50,13 @@ def search_file_for_matches(search_term):
     if Verbose:
         print >>sys.stderr, "---- Search for %s ----" %search_term
 
+    nameparts = search_term.split(" ")        
+    # If a trinomial is given, then just strip away the last part, assuming its the sup-species name. 
+    if len(nameparts) == 3:
+        nameparts = [nameparts[0], nameparts[1]]
+        search_term = " ".join(nameparts)
+        if Verbose:
+            print >>sys.stderr, "Trinomal found, using instead: %s" %search_term
     # grep the file for the search term, and look only at SPECIES results
     res = grep_and_filter(search_term)
     # Multiple Matches found? Look for exact matches and just use those
@@ -62,7 +69,6 @@ def search_file_for_matches(search_term):
         return None
     elif len(res) == 0: # Nothing found :(
         # try searching for the species name and the genus separately.
-        nameparts = search_term.split(" ")
         # Can do this only with two part names (TODO: handle more complex names)
         if len(nameparts) == 2:
             if Verbose:
