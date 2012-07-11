@@ -75,7 +75,9 @@ def search_file_for_matches(search_term):
             	print >>sys.stderr, "Multiple loose matches found for %s. Returning none. \n %s " %(search_term,str(res))
             # IF this results in one and only one results, use that. 
             if len(res) == 1:
-                 return res[0]
+                if Verbose:
+            	    print >>sys.stderr, "One loose match found for %s. \n %s " %(search_term, str(res[0]))
+                return res[0]
         return None
     if Verbose:
         print >>sys.stderr, " One exact match found for %s: %s" %(search_term,str(res[0]))
