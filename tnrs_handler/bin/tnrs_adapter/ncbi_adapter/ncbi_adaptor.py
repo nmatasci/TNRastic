@@ -1,8 +1,9 @@
 '''
-   This script reads taxon names from standard input, one per line, and searches NCBI taxonomy DB 
-   for matches. If matches are found, taxonomy is searched again to find the accepted name for the queried names. 
+   This script reads taxon names from standard input, one per line, and searches NCBI taxonomy 
+   (at http://www.ncbi.nlm.nih.gov/taxonomy) for matches. 
+   If matches are found, taxonomy is searched again to find the accepted name for the queried names. 
    Results are returned as a json file.
-
+   For input names that with no matches, there is no entries included in the results. 
    Developer: Siavash Mirarab (smirarab@gmail.com) 
 '''
 
