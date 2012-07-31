@@ -1,3 +1,12 @@
+# Package tnrs_resolver: Submit lists of taxonomic names to TNRSs and consolidates the results
+# Author: Naim Matasci <nmatasci@iplantcollaborative.org>
+#
+# The contents of this file are subject to the terms listed in the LICENSE file you received with this code.
+# Copyright (c) 2012, The Arizona Board of Regents on behalf of
+# The University of Arizona
+#
+###############################################################################
+
 package tnrs_resolver;
 use strict;
 use JSON;
@@ -8,21 +17,15 @@ our @EXPORT = qw(process);
 
 our $VERSION = '1.1.0';
 
-#my ( $names, $adapters_file, $spellers_file, $target, $spellcheck ) = @ARGV;
-#my $asr = _load_adapters($adapters_file);
-#my $bsr = _load_adapters($spellers_file);
-#$asr->{spellers} = $bsr->{spellers};
-#process( $names, $asr, $target, $spellcheck );
-#exit 0;
-
 sub process {
 	my $names_file = shift;
 	my $ad_ref     = shift;
 	my $target_dir = shift;
 	my $do_spell   = shift;
-	if(!$ad_ref->{spellers}){
-		$do_spell=0;
+	if ( !$ad_ref->{spellers} ) {
+		$do_spell = 0;
 	}
+
 	#output name
 	my $jobId = ( split qr(\/), $names_file )[-1];
 	$jobId = ( split( qr(\.), $jobId ) )[0];
@@ -33,15 +36,15 @@ sub process {
 	my ( $res, $fail ) = query_sources( $names_file, $ad_ref, 'adapters' );
 
 	$res = merge($res);
-	if ( $do_spell && _find_mismatches( $res, $names_file ) ) { #Identify matches with score < 1 and stores them in a name file
-		#spell check
+	if ( $do_spell && _find_mismatches( $res, $names_file ) )
+	{    #Identify matches with score < 1 and stores them in a name file
+		    #spell check
 		my ( $spell_res, $spell_fail ) =
 		  query_sources( $names_file, $ad_ref, 'spellers' );
 		$spell_res = merge($spell_res);
 
 		#match newly spelled names
-		my $name_map =
-		  _make_name_map( $spell_res, $names_file )
+		my $name_map = _make_name_map( $spell_res, $names_file )
 		  ;    #write name file with correctly spelled names
 
 		( $spell_res, $spell_fail ) =
@@ -49,8 +52,7 @@ sub process {
 		  ;    #query spellechecked names
 		$spell_res = merge($spell_res);
 
-		$res =
-		  _restore( $res, $spell_res, $name_map )
+		$res = _restore( $res, $spell_res, $name_map )
 		  ;    #replace old results with new results
 	}
 	write_output( $res, "$target_dir/$jobId.json", $jobId, $sub_date, $ad_ref,
@@ -71,8 +73,7 @@ sub query_sources {
 	foreach ( @{ $adapters_ref->{$mode} } ) {
 		my %source = %{$_};
 
-		my $input =
-		  `cat $names_file | $source{call} 2>/dev/null`
+		my $input = `cat $names_file | $source{call} 2>/dev/null`
 		  ;    #TODO: redirect STDERR to logs
 		my $res;
 		eval {
@@ -140,19 +141,19 @@ sub write_output {
 	my $jobid    = shift;
 	my $sub_date = shift;
 	my $ad_refs  = shift;
-	my $fails= shift;
+	my $fails    = shift;
 
-	
 	my $output;
 
 	my $meta = {
-		jobId    => $jobid,
-		sources  => 	_extract_meta($ad_refs,$fails),   #extract the source metadata from the adapters and the failures
-		sub_date => $sub_date,
+		jobId   => $jobid,
+		sources => _extract_meta( $ad_refs, $fails )
+		,    #extract the source metadata from the adapters and the failures
+		sub_date         => $sub_date,
 		resolver_version => $VERSION,
-		spellcheckers => $ad_refs->{'spellers'}
+		spellcheckers    => $ad_refs->{'spellers'}
 	};
-	
+
 	$output->{metadata} = $meta;
 	my @names;
 
@@ -180,7 +181,7 @@ sub _extract_meta {
 	my $sources = shift;
 	my $fails   = shift;
 	my @meta;
-	foreach ( @{ $sources->{adapters}} ) {
+	foreach ( @{ $sources->{adapters} } ) {
 		my %source = %{$_};
 		if ( $fails->{ $source{sourceId} } ) {
 			$source{status} =
@@ -279,7 +280,7 @@ sub _restore {
 				next;
 			}
 
-			if ( !$original_matches[$i]
+			if (  !$original_matches[$i]
 				|| $matches[$i]->{score} > $original_matches[$i]->{score} )
 			{    #There is a better match for the same source
 				$original_matches[$i] =

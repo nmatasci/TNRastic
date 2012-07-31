@@ -8,10 +8,11 @@
             "publication": "Federhen S. The Taxonomy Project.2002 Oct 9 [Updated 2003 Aug 13]. In: McEntyre J., Ostell J., editors. The NCBI Handbook [Internet]. Bethesda (MD): National Center for Biotechnology Information (US);2002.",
             "annotations": {},
             "rank": 3,
-            "call": "python2.6 tnrs_adapter/ncbi_adapter/ncbi_adaptor.py"
+            "_call": "python2.6 tnrs_adapter/ncbi_adapter/ncbi_adaptor.py",
+            "call": "python2.6 tnrs_adapter/MSW3/MSW3_adaptor.py"
         },
         {
-            "sourceId": "iPlant TNRS",
+            "sourceId": "iPlant_TNRS",
             "name": "iPlant Collaborative TNRS v3.0",
             "description": "The iPlant Collaborative TNRS provides parsing and fuzzy matching for plant taxa.",
             "uri": "http://tnrs.iplantcollaborative.org/",
