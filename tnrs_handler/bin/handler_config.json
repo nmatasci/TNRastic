@@ -1,8 +1,8 @@
 {
-"storage" : "/home/nmatasci/TNRastic/testdata/out",
+"storage" : "/tmp/out",
 "adapters_file" : "tnrs_adapter/adapters.json",
 "spellers_file" : "tnrs_spellchecker/spellers.json",
-"host" : "http://128.196.142.37",
+"host" : "http://128.196.142.93",
 "port" : 3000,
 "tempdir" : "/tmp/tnrs_handler",
 "MAX_PIDS" : 20

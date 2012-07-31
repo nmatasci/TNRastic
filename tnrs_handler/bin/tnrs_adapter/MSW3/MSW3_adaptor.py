@@ -18,7 +18,7 @@ import csv
 import StringIO
 
 ''' set the following to True to get verbose message on standard err'''
-Verbose = False
+Verbose = True
 if len(sys.argv) > 1 and sys.argv[1] == "-v":
     Verbose = True
 
