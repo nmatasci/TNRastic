@@ -11,7 +11,7 @@
 import urllib
 import time
 import sys, traceback
-import os
+import os, re
 import subprocess as sub
 import json
 import csv
@@ -36,7 +36,7 @@ def grep(string,file):
 '''Grep the DB for a given term, interpret results as CSV, and return results.''' 
 def grep_name(term):
     # Search the CSV for a given indexed term
-    p = grep('<i>.* *%s *</i>' %term ,MSV3_CSV_FILE)
+    output = grep('<i>.* *%s *</i>' %term ,MSV3_CSV_FILE)
 
     # Read results as a CSV file
     return csv.reader(StringIO.StringIO(output),  delimiter=',', quotechar='"')
