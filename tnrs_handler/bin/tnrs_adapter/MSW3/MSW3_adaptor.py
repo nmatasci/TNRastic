@@ -18,7 +18,9 @@ import csv
 import StringIO
 
 ''' set the following to True to get verbose message on standard err'''
-Verbose = True
+Verbose = False
+''' a -v option turns verbose outputs on. good for testing.'''
+
 if len(sys.argv) > 1 and sys.argv[1] == "-v":
     Verbose = True
 
@@ -26,13 +28,15 @@ TAXON_URL_BASE="http://www.bucknell.edu/msw3/browse.asp"
 
 MSV3_CSV_FILE = os.path.join(sys.path[0],"MSW3_PARSED.csv")
 
+def grep(string,file):
+   expr = re.compile(string)
+   list = [line for line in open(file,"r") if expr.search(line)]
+   return "".join(list)
+    
 '''Grep the DB for a given term, interpret results as CSV, and return results.''' 
 def grep_name(term):
     # Search the CSV for a given indexed term
-    p = sub.Popen(['grep','-E','<i>.* *%s *</i>' %term ,MSV3_CSV_FILE],stdout=sub.PIPE,stderr=sub.PIPE)
-    output, errors = p.communicate()
-    if errors is not None and errors != "":
-            raise Exception ("Error grepping: %s" %str(errors))
+    p = grep('<i>.* *%s *</i>' %term ,MSV3_CSV_FILE)
 
     # Read results as a CSV file
     return csv.reader(StringIO.StringIO(output),  delimiter=',', quotechar='"')
