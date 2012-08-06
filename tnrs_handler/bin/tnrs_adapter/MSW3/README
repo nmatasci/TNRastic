@@ -4,9 +4,13 @@ The raw CSV dataset downloaded from http://www.bucknell.edu/msw3/. This is assum
 
 util_parse_csv.py
 --------------------------------
-reads the MSW3.csv file (which is the raw database downloaded from MSW3) website, and preapres a new csv file (called MSW3_PARSED.csv") that can be used in our adaptor script. Currently, this parser does the following:
+reads the MSW3.csv file (which is the raw database downloaded from MSW3) website, and preapres two new csv files: 
+1- MSW3_PARSED.csv: used in our adaptor script in UNIX grep mode. 
+2- MSW3_INDEX.csv: used in our adaptor script in Python grep mode. 
+Currently, this parser does the following:
 1- Encodes everything from Latin_1 to UTF-8. This is important!
 2- Adds a column at the end that has "Genus species". This is our naive attempt at building the bionomial from the taxonomy. 
+3- For MSW3_INDEX.csv it strips of non-indexed strings to speed up the search
 
 MSW3_adaptor.py
 --------------------------------
