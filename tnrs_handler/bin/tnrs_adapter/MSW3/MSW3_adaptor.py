@@ -41,7 +41,7 @@ if PYTHON_GREP:
             cat[k] = []
 	cat[k].append(r)
 
-''' Grep a file for a given pattering'''
+''' Grep a file for a given pattern'''
 def grep(string,file):
    if PYTHON_GREP:
        expr = re.compile(string)
