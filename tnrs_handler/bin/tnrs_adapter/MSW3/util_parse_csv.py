@@ -1,6 +1,6 @@
 import csv
 
-import codecs, cStringIO
+import codecs, cStringIO, re
 
 class UTF8Recoder:
     """
@@ -61,10 +61,18 @@ class UnicodeWriter:
         for row in rows:
             self.writerow(row)
 
+
 r = UnicodeReader(open('MSW3.csv', 'rb'), encoding="latin_1",delimiter=',', quotechar='"')
+
 f=open('MSW3_PARSED.csv', 'wb')
 w = UnicodeWriter(f, delimiter=',',encoding="utf-8",
                          quotechar='"', quoting=csv.QUOTE_ALL)
+fi=open('MSW3_INDEX.csv', 'wb')
+ind = UnicodeWriter(fi, delimiter=',',encoding="utf-8",
+                         quotechar='"', quoting=csv.QUOTE_ALL)
+
+pattern = re.compile('<i>.*?</i>')
+
 for row in r:
 	if row[8] != "" and row[10] != "":
 		row.append( "<i>%s %s </i>" %(row[8],row[10]))
@@ -72,4 +80,12 @@ for row in r:
 		row.append("")
 	w.writerow(row)
 
+        rstripped = [" ".join(pattern.findall(c)) for c in row] 
+        rstripped[0] = row [0]
+        rstripped[12] = row [12]
+        rstripped[34] = row [34]
+
+	ind.writerow(rstripped)
+
 f.close()
+fi.close()

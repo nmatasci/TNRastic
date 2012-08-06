@@ -17,36 +17,65 @@ import json
 import csv
 import StringIO
 
-''' set the following to True to get verbose message on standard err'''
-Verbose = False
-''' a -v option turns verbose outputs on. good for testing.'''
+''' Set the following flag to False to use UNIX grep instead of python 
+    UNIX grep is many many times faster than our current python grep '''
+PYTHON_GREP=True
 
+''' set the following to True to get verbose message on standard err.
+    A -v option turns verbose outputs on. good for testing.'''
+Verbose = False
 if len(sys.argv) > 1 and sys.argv[1] == "-v":
     Verbose = True
 
+
 TAXON_URL_BASE="http://www.bucknell.edu/msw3/browse.asp"
 
-MSV3_CSV_FILE = os.path.join(sys.path[0],"MSW3_PARSED.csv")
+MSV3_CSV_FILE = open(os.path.join(sys.path[0],"MSW3_INDEX.csv")).readlines() if PYTHON_GREP else "MSW3_PARSED.csv"
 
+cat = {}
+if PYTHON_GREP:
+    for r in MSV3_CSV_FILE:
+        row=r.split(",")
+        k = row[12][1:-1]
+	if k not in cat.keys():
+            cat[k] = []
+	cat[k].append(r)
+
+''' Grep a file for a given pattering'''
 def grep(string,file):
-   expr = re.compile(string)
-   list = [line for line in open(file,"r") if expr.search(line)]
-   return "".join(list)
-    
+   if PYTHON_GREP:
+       expr = re.compile(string)
+       list = [line for line in file if expr.search(line)]
+       return "".join(list)
+   else:
+       p = sub.Popen(['grep','-E',string,file],stdout=sub.PIPE,stderr=sub.PIPE) 
+       output, errors = p.communicate()
+       if errors is not None and errors != "":
+           raise Exception ("Error grepping: %s" %str(errors))
+       return output
+
+
 '''Grep the DB for a given term, interpret results as CSV, and return results.''' 
-def grep_name(term):
+def grep_name(term, file):
     # Search the CSV for a given indexed term
-    output = grep('<i>.* *%s *</i>' %term ,MSV3_CSV_FILE)
+    output = grep('<i>.* *%s *</i>' %term , file)
 
     # Read results as a CSV file
     return csv.reader(StringIO.StringIO(output),  delimiter=',', quotechar='"')
 
 def grep_and_filter(search_term, filter="SPECIES"):
-    # grep for the searched trem in all indices
-    rcsv = grep_name(search_term)
-
-    # Look only at SPECIES results
-    return [ (row[0],row[34],",".join(row)) for row in rcsv if row[12] == filter ]
+    if PYTHON_GREP:
+        # First filter
+	filtered = cat[filter]
+        # then grep for the searched trem in filtered lines
+        rcsv = grep_name(search_term, filtered )
+        # and then return results
+        return [ (row[0],row[34],",".join(row)) for row in rcsv]
+    else:
+        # grep for the searched trem in all indices
+        rcsv = grep_name(search_term, MSV3_CSV_FILE )
+        # Look only at SPECIES results
+        return [ (row[0],row[34],",".join(row)) for row in rcsv if row[12] == filter ]
 
 '''Search for a given name and find its taxonomic ID.'''
 def search_file_for_matches(search_term):
