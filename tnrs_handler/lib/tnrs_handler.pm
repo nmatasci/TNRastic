@@ -13,7 +13,7 @@ use Dancer ':syntax';
 use JSON;
 use Digest::MD5 qw(md5_hex);
 
-our $VERSION = '2.1.0';
+our $VERSION = '2.1.1';
 
 my $config_file_path = "handler_config.json";
 my $cfg              = get_cfg($config_file_path);
@@ -23,7 +23,7 @@ if(!$cfg->{prefix}){
 	prefix undef;
 } else{
 	prefix $cfg->{prefix};
-}
+} 
 
 #TODO: Add cache
 

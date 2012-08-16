@@ -117,6 +117,6 @@
 		</ul>
 	</p>
 	</div>
-
+<a class="img" href="http://www.iplantcollaborative.org" target="_blank"><img class="powered" src="<% host %>/images/iplant_power.png" width="100px"/></a>
 </body>
 </html>

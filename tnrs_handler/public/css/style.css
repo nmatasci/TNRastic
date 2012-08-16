@@ -19,6 +19,18 @@ margin-bottom: 2em;
 padding-bottom:0.2em;
 margin-right: auto;
 }
+a.img{
+
+}
+
+img.powered{
+display: block;
+margin-left: auto;   
+margin-right: auto;
+position:relative;
+right:75px;
+top:20px;
+}
 
 h1 {
 font-size: 28px;
