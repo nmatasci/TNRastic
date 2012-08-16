@@ -20,6 +20,8 @@ my $cfg              = get_cfg($config_file_path);
 
 my $n_pids = 0;
 
+prefix $cfg->{prefix};
+
 #TODO: Add cache
 
 #Wrapper for the external call function
