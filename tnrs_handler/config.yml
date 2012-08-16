@@ -3,7 +3,7 @@
 # all the settings in this file will be loaded at Dancer's startup.
 
 # Your application's name
-appname: "tnrs_handler"
+appname: "Taxosaurus"
 
 # The default layout to use for your application (located in
 # views/layouts/main.tt)
@@ -27,4 +27,4 @@ template: "simple"
 #     start_tag: '[%'
 #     end_tag:   '%]'
 daemon: true
-port: 3000
+port: 80
