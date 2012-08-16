@@ -19,8 +19,11 @@ my $config_file_path = "handler_config.json";
 my $cfg              = get_cfg($config_file_path);
 
 my $n_pids = 0;
-
-prefix $cfg->{prefix};
+if(!$cfg->{prefix}){
+	prefix undef;
+} else{
+	prefix $cfg->{prefix};
+}
 
 #TODO: Add cache
 
@@ -45,7 +48,7 @@ sub call {
 
 #Information
 get '/' => sub {
-	template 'index' => { host => $cfg->{host}, version => $VERSION };
+	template 'index' => { host => $cfg->{host}, prefix => $cfg->{prefix}, version => $VERSION };
 };
 
 #Only for debugging purposes
@@ -123,7 +126,7 @@ any [ 'post', 'get' ] => '/submit' => sub {
 get '/retrieve/:job_id?' => sub {
 	if ( !defined( param('job_id') ) ) {
 		return _error( 'bad_request',
-"Please specify a job id. Usage: GET $cfg->{'host'}/retrieve/&ltjob_id&gt"
+"Please specify a job id. Usage: GET $cfg->{'host'}$cfg->{'prefix'}/retrieve/&ltjob_id&gt"
 		);
 	}
 	return call( 'retrieve_Job_id', param('job_id') );
@@ -133,7 +136,7 @@ get '/retrieve/:job_id?' => sub {
 any [ 'del', 'get', 'post' ] => '/delete/:job_id?' => sub {
 	if ( !defined( param('job_id') ) ) {
 		return _error( 'bad_request',
-"Please specify a job id. Usage: DELETE | GET | POST $cfg->{'host'}/delete/&ltjob_id&gt"
+"Please specify a job id. Usage: DELETE | GET | POST $cfg->{'host'}$cfg->{'prefix'}/delete/&ltjob_id&gt"
 		);
 	}
 	return call( 'delete_Job_id', param('job_id') );
@@ -168,7 +171,7 @@ sub _error {
 #Build the response to a successful submission.
 sub _build_response {
 	my ( $fn, $date ) = @_;
-	my $uri = "$cfg->{host}/retrieve/$fn";
+	my $uri = "$cfg->{host}$cfg->{'prefix'}/retrieve/$fn";
 
 	my $json = {
 		'status'      => 'found',

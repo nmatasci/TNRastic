@@ -12,7 +12,7 @@
 		across various taxonomic sources. Fore more information, please visit <a
 			href="http://www.evoio.org/wiki/Phylotastic/TNRS">http://www.evoio.org/wiki/Phylotastic/TNRS</a>.</p>
 
-	<div id="service"> <endpoint>/submit</endpoint>
+	<div id="service"> <endpoint><% prefix %>/submit</endpoint>
 	<p>
 		<method>POST</method>
 		a list of scientific names to the service and retrieve a token.
@@ -27,9 +27,9 @@
 			<li>Returns: a JSON object containing a token to access the
 				results.</li>
 			<li>Example: <a
-				href="<% host %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert"><%
+				href="<% host %><% prefix %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert"><%
 					host
-					%>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert</a></li>
+					%><% prefix %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert</a></li>
 		</ul>
 		<method>GET</method>
 		a list of scientific names to the service and retrieve a token.
@@ -42,13 +42,13 @@
 			<li>Returns: a JSON object containing a token to access the
 				results.</li>
 			<li>Example: <a
-				href="<% host %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert"><%
+				href="<% host %><% prefix %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert"><%
 					host
-					%>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert</a></li>
+					%><% prefix %>/submit?query=Panthera+tigris%0AEutamias+minimus%0AMagnifera+indica%0AHumbert+humbert</a></li>
 		</ul>
 	</p>
 	</div>
-	<div id="service"> <endpoint>/retrieve/&lt;token&gt;</endpoint>
+	<div id="service"> <endpoint><% prefix %>/retrieve/&lt;token&gt;</endpoint>
 	<p>
 		<method>GET</method>
 		the result of a TNRastic query.
@@ -56,26 +56,26 @@
 			<li>Parameters: <i>none</i></li>
 			<li>Returns: a JSON object containing the accepted names.</li>
 			<li>Example: <a
-				href="<% host %>/retrieve/7381e6dddcb06a7865c56b5dfd40cf05"><%
-					host %>/retrieve/7381e6dddcb06a7865c56b5dfd40cf05</a></li>
+				href="<% host %><% prefix %>/retrieve/7381e6dddcb06a7865c56b5dfd40cf05"><%
+					host %><% prefix %>/retrieve/7381e6dddcb06a7865c56b5dfd40cf05</a></li>
 		</ul>
 	</p>
 	</div>
 
-	<div id="service"> <endpoint>/sources/list</endpoint>
+	<div id="service"> <endpoint><% prefix %>/sources/list</endpoint>
 	<p>
 		<method>GET</method>
 		a ranked list the ids of all available sources.
 		<ul>
 			<li>Parameters: <i>none</i></li>
 			<li>Returns: a JSON object containing the list of source_id.</li>
-			<li>Example: <a href="<% host %>/sources/list"><% host
-					%>/sources/list</a></li>
+			<li>Example: <a href="<% host %><% prefix %>/sources/list"><% host
+					%><% prefix %>/sources/list</a></li>
 		</ul>
 	</p>
 	</div>
 
-	<div id="service"> <endpoint>/sources/&lt;source_id&gt;</endpoint>
+	<div id="service"> <endpoint><% prefix %>/sources/&lt;source_id&gt;</endpoint>
 	<p>
 		<method>GET</method>
 		the details about a particular source. If source_id is omitted, the
@@ -87,14 +87,14 @@
 					<li><i>none</i> to return the details for all sources.</li>
 				</ul>
 				<li>Returns: a JSON object containing source(s) details.</li>
-				<li>Example: <a href="<% host %>/sources/NCBI"><% host
-						%>/sources/NCBI</a></li>
+				<li>Example: <a href="<% host %><% prefix %>/sources/NCBI"><% host
+						%><% prefix %>/sources/NCBI</a></li>
 		</ul>
 	</p>
 	</div>
 
 
-	<div id="service"> <endpoint>/delete/&lt;token&gt;</endpoint>
+	<div id="service"> <endpoint><% prefix %>/delete/&lt;token&gt;</endpoint>
 	<p>
 		<method>GET</method>
 		<i>or</i>
@@ -112,8 +112,8 @@
 			<li>Returns: a JSON object indicating success or an error
 				message.</li>
 			<li>Example: <a
-				href="<% host %>/delete/b6356e63f0c39d58066c1e772e24ff6f"><%
-					host %>/delete/b6356e63f0c39d58066c1e772e24ff6f</a></li>
+				href="<% host %><% prefix %>/delete/b6356e63f0c39d58066c1e772e24ff6f"><%
+					host %><% prefix %>/delete/b6356e63f0c39d58066c1e772e24ff6f</a></li>  
 		</ul>
 	</p>
 	</div>
