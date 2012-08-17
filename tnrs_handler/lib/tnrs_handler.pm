@@ -32,7 +32,7 @@ sub init {
 
 	$_cfg->{prefix} = config->{prefix};
 	if ( !$_cfg->{prefix} ) {
-		$_cfg->{prefix}='';
+		$_cfg->{prefix}=''; 
 		prefix undef;
 	}
 	else {
