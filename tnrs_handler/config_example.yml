@@ -28,7 +28,13 @@ template: "simple"
 #     end_tag:   '%]'
 daemon: true
 
-#Host info
-host: "http://www.taxosaurus.org"
-port: 80
+# port. If empty defaults to 3000. Sudo privileges are usually required to run on port 80
+port: 80 
+
+# prefix. Sets the top level resource
 #prefix: "/tnrs"
+
+#Host name
+#NOTE: This does not affect the actual host, but only the links that will be shown to the user
+hostname: "http://www.taxosaurus.org" 
+
