@@ -27,4 +27,8 @@ template: "simple"
 #     start_tag: '[%'
 #     end_tag:   '%]'
 daemon: true
+
+#Host info
+host: "http://www.taxosaurus.org"
 port: 80
+#prefix: "/tnrs"

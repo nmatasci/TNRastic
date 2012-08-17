@@ -9,21 +9,56 @@
 
 package tnrs_handler;
 use handler_lib qw(get_cfg call_fun);
-use Dancer ':syntax';
 use JSON;
+use Dancer ':syntax';
 use Digest::MD5 qw(md5_hex);
+use Sys::Hostname;
 
-our $VERSION = '2.1.1';
+our $VERSION = '2.1.2';
 
-my $config_file_path = "handler_config.json";
-my $cfg              = get_cfg($config_file_path);
+my $DEF_CONFIG = "handler_config.json";
 
-my $n_pids = 0;
-if(!$cfg->{prefix}){
-	prefix undef;
-} else{
-	prefix $cfg->{prefix};
-} 
+my $cfg = init($DEF_CONFIG);
+
+sub init {
+	my $def_config_file = shift;
+
+	my $handler_cfg = config->{handler_cfg};
+	if ( !$handler_cfg ) {
+		$handler_cfg = $def_config_file;
+	}
+
+	my $_cfg = get_cfg($handler_cfg);
+
+	$_cfg->{prefix} = config->{prefix};
+	if ( !$_cfg->{prefix} ) {
+		prefix undef;
+	}
+	else {
+		prefix $_cfg->{prefix};
+	}
+
+	$_cfg->{host} = config->{hostname};
+	if ( !$_cfg->{host} ) {
+		$_cfg->{host} = hostname;
+	}
+	if ( $_cfg->{host} !~ /^http/ ) {
+		$_cfg->{host} = "http://$_cfg->{host}";
+	}
+
+	$_cfg->{port} = config->{port};
+	if ( !$_cfg->{port} ) {
+		$_cfg->{host} = "$_cfg->{host}:3000";
+	}
+	elsif ( $_cfg->{port} eq '80' ) {
+		$_cfg->{host} = $_cfg->{host};
+	}
+	else {
+		$_cfg->{host} = "$_cfg->{host}:$_cfg->{port}";
+	}
+	return $_cfg;
+
+}
 
 #TODO: Add cache
 
@@ -48,7 +83,8 @@ sub call {
 
 #Information
 get '/' => sub {
-	template 'index' => { host => $cfg->{host}, prefix => $cfg->{prefix}, version => $VERSION };
+	template 'index' =>
+	  { host => $cfg->{host}, prefix => $cfg->{prefix}, version => $VERSION };
 };
 
 #Only for debugging purposes
@@ -139,7 +175,14 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id?' => sub {
 "Please specify a job id. Usage: DELETE | GET | POST $cfg->{'host'}$cfg->{'prefix'}/delete/&ltjob_id&gt"
 		);
 	}
-	return call( 'delete_Job_id', param('job_id') );
+	my $job_id = param('job_id');
+	my $ret = decode_json( call( 'delete_Job_id', $job_id ) );
+	if ( $ret->{'status'} eq 'found' ) {
+		$ret->{'message'} .=
+		  "You can retrieve the results at $cfg->{host}/retrieve/$job_id",
+		  $ret->{'uri'} = "$cfg->{host}/retrieve/$job_id";
+	}
+	return encode_json($ret);
 };
 
 #Stores a submitted list of names in a temporary file

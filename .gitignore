@@ -20,3 +20,4 @@ tnrs_handler/bin/handler_config.json
 testdata/names.test*
 tnrs_handler/.tnrs_handler.pid
 tnrs_handler/Makefile.old
+tnrs_handler/config.yml

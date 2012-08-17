@@ -18,7 +18,7 @@ use JSON;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(get_cfg call_fun);
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 
 #################################
 #Constants
@@ -28,7 +28,7 @@ our $VERSION = '0.1.0';
 my $CALLS = {
 	sources_list         => \&sources_list,
 	sources_SourceId     => \&sources_SourceId,
-	admin_reload_sources => \&admin_reload_sources, 
+	admin_reload_sources => \&admin_reload_sources,
 	submit               => \&submit,
 	retrieve_Job_id      => \&retrieve_Job_id,
 	delete_Job_id        => \&delete_Job_id,
@@ -96,10 +96,8 @@ sub delete_Job_id {
 	if ( -f "$cfg->{storage}/$job_id.json" ) {
 		return encode_json(
 			{
-				'status' => 'found',
-				'message' =>
-"The requested job $job_id has completed. You can retrieve the results at $cfg->{host}/retrieve/$job_id",
-				'uri' => "$cfg->{host}/retrieve/$job_id",
+				'status'  => 'found',
+				'message' => "The requested job $job_id has completed.",
 			}
 		);
 	}
@@ -245,7 +243,7 @@ sub sources_SourceId {
 
 	my @sources = @{ $cfg->{modules}->{adapters} };
 
-	#Problem: There are no source.
+	#Problem: There are no sources.
 	if ( !@sources ) {
 		return encode_json(
 			{
@@ -290,9 +288,6 @@ sub _init {
 	my @cfg = (<$CFG>);
 	close $CFG;
 	my $cfg_ref = decode_json( join '', @cfg );
-	my $host = $cfg_ref->{host};
-	$host = $cfg_ref->{port} ? "$host:" . $cfg_ref->{port} : $host;
-	$cfg_ref->{host} = $host;
 
 	#load adapters registry
 	$cfg_ref->{modules} = _load_modules( $cfg_ref->{adapters_file} );
