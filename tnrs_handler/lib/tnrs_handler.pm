@@ -6,15 +6,20 @@
 # The University of Arizona
 #
 ###############################################################################
-
+use strict;
 package tnrs_handler;
+use Exporter;
+
+our @ISA    = qw(Exporter);
+our @EXPORT = qw(init);
+
 use handler_lib qw(get_cfg call_fun);
 use JSON;
-use Dancer ':syntax';
+use Dancer;
 use Digest::MD5 qw(md5_hex);
 use Sys::Hostname;
 
-our $VERSION = '2.1.2';
+our $VERSION = '2.2.0';
 
 my $DEF_CONFIG = "handler_config.json";
 
@@ -98,6 +103,7 @@ any [ 'get', 'post' ] => '/status' => sub {
 	return encode_json( { "status" => "OK" } );
 };
 
+
 #Sources
 get '/sources/list' => sub {
 	return call('sources_list');
@@ -123,18 +129,20 @@ get '/admin/reload_sources' => sub {
 };
 
 #Submit
-any [ 'post', 'get' ] => '/submit' => sub {
-
+any [ 'post', 'get','options' ] => '/submit' => sub {
+	
 	my $para = request->params;
-
+	my$fn;  #name of the temporary file = token = job id
+	my$source;
+	my$code;
+	
 	if ( !defined($para) || ( !$para->{query} && !$para->{file} ) ) {
 		return _error( 'bad_request',
 "Please provide an input list of newline separated names: $para->{query}"
 		);
 	}
-
-	my $fn;    #name of the temporary file = token = job id
-
+	
+	 
 	if ( $para->{query} ) {
 		$fn = _stage( $para->{query} );
 	}
@@ -143,13 +151,21 @@ any [ 'post', 'get' ] => '/submit' => sub {
 		$fn = md5_hex( $upload->content, time );
 		$upload->copy_to("$cfg->{tempdir}/$fn.tmp");
 	}
-
+	#source
+	if ( $para->{source} ) {
+		$source =  $para->{source} ;
+	}
+	
+	if ( $para->{code} ) {
+		$code =  $para->{code} ;
+	}
+	
 	my $date = localtime
 	  ;    #For some reason, printing localtime directly doesn't format properly
 	info "Request submitted\t$date\t", request->address(), "\t",
 	  request->user_agent();    #Writes the request to the log
-
-	my $res = call( 'submit', $cfg->{tempdir}, $fn );
+	
+	my $res = call( 'submit', $cfg->{tempdir}, $fn, $source,$code );
 
 	if ($res) {
 		return _build_response( $fn, $date );
@@ -160,7 +176,7 @@ any [ 'post', 'get' ] => '/submit' => sub {
 };
 
 #Retrieve
-get '/retrieve/:job_id?' => sub {
+any ['get','options'] => '/retrieve/:job_id?' => sub {
 	if ( !defined( param('job_id') ) ) {
 		return _error( 'bad_request',
 "Please specify a job id. Usage: GET $cfg->{'host'}$cfg->{'prefix'}/retrieve/&ltjob_id&gt"

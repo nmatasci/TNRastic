@@ -68,8 +68,10 @@ sub call_fun {
 
 #Submit a job
 sub submit {
-	my ( $tmpdir, $filename ) = @_;
-	my $res = _submit( $tmpdir, $filename );
+	my ( $tmpdir, $filename,$sources,$code ) = @_;
+	
+	my$res= _submit( $tmpdir, $filename, $sources,$code );
+
 	if ( !$res ) {
 		return encode_json(
 			{
@@ -304,7 +306,7 @@ sub _init {
 		my @files = grep ( !/^\.+$/, readdir $DIR );
 		closedir $DIR;
 		for (@files) {
-			my $k = unlink "$tempdir/$_";
+#			my $k = unlink "$tempdir/$_";
 		}
 	};
 
@@ -318,7 +320,7 @@ sub _init {
 #Forks a process to interrogate the TNRSs
 sub _submit {
 	$SIG{CHLD} = "IGNORE";    #Avoids zombie processes
-	my ( $tmpdir, $filename ) = @_;
+	my ( $tmpdir, $filename, $source_l ,$code) = @_;
 	fork
 	  and
 	  return 1;   #Spawn a child process and returns to the http handler fuction
@@ -336,10 +338,19 @@ sub _submit {
 	#	if ( $n_pids >= $cfg->{MAX_PIDS} ) {
 	#		sleep $n_pids * 10;
 	#	}
+	my$mods=$cfg->{modules};
+	if($code){
+		$mods=_select_code($mods,$code);
+	}
+	if($source_l){
+		my@source=split /,/,$source_l;	
+		$mods=_set_sources($mods,\@source);
+	}
+	
+	
 
-	process( "$cfg->{tempdir}/$filename.tmp", $cfg->{modules},
+	process( "$cfg->{tempdir}/$filename.tmp", $mods,
 		$cfg->{storage} );
-
 	unlink "$cfg->{tempdir}/.$filename.lck";
 
 	#	$n_pids--;
@@ -374,6 +385,68 @@ sub _load_modules {
 	close $MOD;
 	my $modules_ref = decode_json( join '', @modules );
 	return $modules_ref;
+} 
+
+sub _set_sources{
+	my($mods,$sources)=@_;
+	if ( !$sources || @{$sources}==0 ){
+		return $mods;	
+	}
+
+	my%lookup;
+	my$indx=0;
+	my@adlist=@{$mods->{adapters}};
+	
+	for(my$i=0;$i<@adlist;$i++){
+			$lookup{$adlist[$i]->{sourceId}}=$i;
+	}
+	
+	my@selected;
+	for(@{$sources}){
+		if(defined($lookup{$_})){
+				push @selected, $adlist[$lookup{$_}];
+		}
+	}
+	if(@selected){
+		my$selected;
+		$selected->{spellers}=$mods->{spellers};
+		$selected->{adapters}=\@selected;
+		
+		return $selected;	
+	} else {
+		return $mods;	
+	}
 }
 
+sub _select_code{
+	my($mods,$codes)=@_;	
+
+	my@adlist=@{$mods->{adapters}};
+	my@selected;
+	
+#	for(my$i=0;$i<@adlist;$i++){
+#		for(@{$codes}){
+#			if($adlist[$i]->{code} =~ m/$_[,^]/){ #or should it be exclusive? $adlist[$i]->{code} eq $_
+#				push @selected, $adlist[$i];
+#				last;
+#			}
+#		}	
+#	}
+	for(my$i=0;$i<@adlist;$i++){
+			if($adlist[$i]->{code} =~ m/$codes/){
+				push @selected, $adlist[$i];
+			}
+	}
+	
+
+	if(@selected){
+		my$selected;
+		$selected->{spellers}=$mods->{spellers};
+		$selected->{adapters}=\@selected;
+		
+		return $selected;	
+	} else {
+		return $mods;	
+	}
+}
 1;

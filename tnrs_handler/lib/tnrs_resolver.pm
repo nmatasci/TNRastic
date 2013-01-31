@@ -15,7 +15,7 @@ use Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT = qw(process);
 
-our $VERSION = '1.1.0';
+our $VERSION = '1.2.0';
 
 sub process {
 	my $names_file = shift;

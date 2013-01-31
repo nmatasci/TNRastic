@@ -8,7 +8,8 @@
             "publication": "Federhen S. The Taxonomy Project.2002 Oct 9 [Updated 2003 Aug 13]. In: McEntyre J., Ostell J., editors. The NCBI Handbook [Internet]. Bethesda (MD): National Center for Biotechnology Information (US);2002.",
             "annotations": {},
             "rank": 3,
-            "call": "python2.6 tnrs_adapter/ncbi_adapter/ncbi_adaptor.py"
+            "call": "python2.6 tnrs_adapter/ncbi_adapter/ncbi_adaptor.py",
+			"code" : "ICZN,ICN,ICNB"
         },
         {
             "sourceId": "iPlant_TNRS",
@@ -20,7 +21,8 @@
                 "Authority": "Author attributed to the accepted name (where applicable)."
             },
             "rank": 2,
-            "call": "perl -Itnrs_adapter/iplant tnrs_adapter/iplant/iplant.pl"
+            "call": "perl -Itnrs_adapter/iplant tnrs_adapter/iplant/iplant.pl",
+			"code" : "ICN"
         },        
         {   
             "sourceId": "MSW3",
@@ -32,7 +34,8 @@
                 "Authority": "Don E. Wilson & DeeAnn M. Reeder (editors). 2005. Mammal Species of the World. A Taxonomic and Geographic Reference (3rd ed)"
             },
             "rank": 4,
-            "call": "python2.6 tnrs_adapter/MSW3/MSW3_adaptor.py"
+            "call": "python2.6 tnrs_adapter/MSW3/MSW3_adaptor.py",
+			"code" : "ICZN"
         }
 
     ]
