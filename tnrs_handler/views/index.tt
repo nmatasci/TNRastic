@@ -23,7 +23,12 @@
 				<li><params>query</params>: newline separated list of scientific
 					names. <em>OR</em></li>
 				<li><params>file</params>: a text file containing newline
-					separated scientific names</li>
+					separated scientific names.</li>
+				<li><params>source</params> (optional): a comma separated list of taxonomic source ids (see /sources/list).</li>
+				<li><params>code</params> (optional): the abbreviation for one of the nomenclature codes 
+				(ICZN: International Code of Zoological Nomenclature; ICN: International Code of Nomenclature for algae, fungi, and plants; ICNB: International Code of Nomenclature of Bacteria).</li>
+				
+					
 			</ul>
 			<li>Returns: a JSON object containing a token to access the
 				results.</li>

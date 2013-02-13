@@ -206,7 +206,7 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id?' => sub {
 sub _stage {
 	my $names = shift;
 	my $fn = md5_hex( $names, time );
-	open( my $TF, ">$cfg->{tempdir}/$fn.tmp" ) or return _error();
+	open( my $TF, '>utf8',"$cfg->{tempdir}/$fn.tmp" ) or return _error();
 	print $TF $names;
 	close $TF;
 	return $fn;

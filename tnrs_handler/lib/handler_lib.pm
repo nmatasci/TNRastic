@@ -13,6 +13,7 @@ use Exporter;
 
 use tnrs_resolver qw(process);
 use Parallel::ForkManager;
+use utf8;
 use JSON;
 
 our @ISA    = qw(Exporter);
@@ -145,7 +146,7 @@ sub retrieve_Job_id {
 
 	#If the result is available it can be returned (output file is present).
 	if ( -f "$cfg->{storage}/$job_id.json" ) {
-		open( my $RF, "<$cfg->{storage}/$job_id.json" )
+		open( my $RF, "<:encoding(utf8)","$cfg->{storage}/$job_id.json" )
 		  or return encode_json(
 			{
 				'status' => 'internal_server_error',
@@ -158,6 +159,7 @@ sub retrieve_Job_id {
 
 		my $res = join '', @tmp;    #is already JSON
 		$res =~ s/^\{/{"status":"OK",/;
+		utf8::decode($res);
 		return $res;
 	}
 
