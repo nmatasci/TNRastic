@@ -21,3 +21,7 @@ testdata/names.test*
 tnrs_handler/.tnrs_handler.pid
 tnrs_handler/Makefile.old
 tnrs_handler/config.yml
+tnrs_handler/public/google1dad75acd7d1b436.html
+tnrs_handler/bin/tnrs_adapter/MSW3/
+tnrs_handler/bin/tnrs_adapter/MSW3/*
+

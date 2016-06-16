@@ -287,6 +287,7 @@ sub sources_SourceId {
 #Initialization function
 sub _init {
 	my $config_file = shift;
+
 	open( my $CFG, "<$config_file" )
 	  or die "Cannot load handler configuration file $config_file: $!";
 	my @cfg = (<$CFG>);

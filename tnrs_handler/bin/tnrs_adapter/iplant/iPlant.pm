@@ -71,8 +71,7 @@ sub lookup {
             'agent' => "TRNastic iPlant TNRS adaptor/0.1 "
         );
     }
-
-    my $url = "http://tnrs.iplantc.org/tnrsm-svc/matchNames";
+    my $url = "http://tnrs.iplantcollaborative.org/tnrsm-svc/matchNames";
     my $response = $lwp->post($url, {
         'retrieve' => 'best',
         'names' => $names

@@ -16,21 +16,27 @@ our @EXPORT = qw(init);
 use handler_lib qw(get_cfg call_fun);
 use JSON;
 use Dancer;
+use Data::Dumper;
 use Digest::MD5 qw(md5_hex);
 use Sys::Hostname;
+use FindBin '$RealBin';
 
-our $VERSION = '2.2.0';
+our $VERSION = '2.2.2';
 
+#my$script_loc=$FindBin::Bin;
+
+#my$EX_DIR=path($RealBin, '..', 'bin');
 my $DEF_CONFIG = "handler_config.json";
-
 my $cfg = init($DEF_CONFIG);
+
 
 sub init {
 	my $def_config_file = shift;
-
+	my$loc=path($RealBin, '..', 'bin');
+	chdir $loc;
 	my $handler_cfg = config->{handler_cfg};
 	if ( !$handler_cfg ) {
-		$handler_cfg = $def_config_file;
+		$handler_cfg = "$def_config_file";
 	}
 
 	my $_cfg = get_cfg($handler_cfg);
@@ -44,24 +50,28 @@ sub init {
 		prefix $_cfg->{prefix};
 	}
 
-	$_cfg->{host} = config->{hostname};
-	if ( !$_cfg->{host} ) {
-		$_cfg->{host} = hostname;
-	}
+	$_cfg->{host} = $_cfg->{hostname};
+#	if ( !$_cfg->{host} ) {
+#		$_cfg->{host} = hostname;
+#	}
 	if ( $_cfg->{host} !~ /^http/ ) {
 		$_cfg->{host} = "http://$_cfg->{host}";
 	}
 
 	$_cfg->{port} = config->{port};
-	if ( !$_cfg->{port} ) {
-		$_cfg->{host} = "$_cfg->{host}:3000";
-	}
-	elsif ( $_cfg->{port} eq '80' ) {
-		$_cfg->{host} = $_cfg->{host};
-	}
-	else {
-		$_cfg->{host} = "$_cfg->{host}:$_cfg->{port}";
-	}
+#	if ( !$_cfg->{port} ) {
+#		$_cfg->{host} = "$_cfg->{host}:3000";
+#	}
+#	elsif ( $_cfg->{port} eq '80' ) {
+#		$_cfg->{host} = $_cfg->{host};
+#	}
+#	else {
+#		$_cfg->{host} = "$_cfg->{host}:$_cfg->{port}";
+#	}
+	$_cfg->{ex_dir}=$loc;
+	set content_type => 'text/json';
+	set default_mime_type=> 'text/json';
+	set charset=>'UTF-8';
 	return $_cfg;
 
 }
@@ -87,10 +97,12 @@ sub call {
 	return $res;
 }
 
+
 #Information
 get '/' => sub {
+	content_type 'text/html';
 	template 'index' =>
-	  { host => $cfg->{host}, prefix => $cfg->{prefix}, version => $VERSION };
+	  { host => $cfg->{host}, prefix => $cfg->{prefix}, version => $VERSION };	  
 };
 
 #Only for debugging purposes
@@ -151,6 +163,7 @@ any [ 'post', 'get','options' ] => '/submit' => sub {
 		$fn = md5_hex( $upload->content, time );
 		$upload->copy_to("$cfg->{tempdir}/$fn.tmp");
 	}
+	
 	#source
 	if ( $para->{source} ) {
 		$source =  $para->{source} ;
@@ -201,6 +214,7 @@ any [ 'del', 'get', 'post' ] => '/delete/:job_id?' => sub {
 	}
 	return encode_json($ret);
 };
+
 
 #Stores a submitted list of names in a temporary file
 sub _stage {

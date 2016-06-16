@@ -21,6 +21,6 @@ if [ -e ".tnrs_handler.pid" ]; then
 fi
 
 cd bin
-perl tnrs_handler.pl --environment=production_test &
+perl tnrs_handler.pl --environment=production &
 
 echo "TNRastic successfully started"

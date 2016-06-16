@@ -5,6 +5,7 @@
 <title>Welcome to Taxosaurus</title> 
 <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
 <link rel="stylesheet" href="css/style.css" />
+<link rel="shortcut icon" href="http://www.iplantcollaborative.org/sites/all/themes/iplant/favicon.ico" type="image/x-icon">
 </head>
 <body>
 	<img src="images/Phylotastic_logo.png" width="500px"/><h1>Taxosaurus - <i>The Taxonomic Thesaurus</i></h1>
