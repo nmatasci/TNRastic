@@ -13,10 +13,10 @@ import sys
 import json
 from xml.etree.ElementTree import fromstring
 
-TAXON_URL_BASE="http://www.ncbi.nlm.nih.gov/taxonomy"
+TAXON_URL_BASE="https://www.ncbi.nlm.nih.gov/taxonomy"
 
-BASE_SEARCH_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
-BASE_SUMMARY_QUARY = "http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+BASE_SEARCH_QUARY = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+BASE_SUMMARY_QUARY = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
 
 BAD_XML_ERROR = "NCBI XML could not be parsed: %s\n (quary=%s)"
 MP_ID_ERROR = "We expect one ID back from NCBI, but we got more than one ID. Oops!"
